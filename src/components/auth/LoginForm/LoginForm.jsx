@@ -77,6 +77,8 @@ const LoginForm = () => {
 
         setValidationError("");
 
+        setMessage("");
+
 
         // IDENTIFIER VALIDATION
 
@@ -109,21 +111,55 @@ const LoginForm = () => {
 
             setLoading(true);
 
-            setMessage("");
-
             const response = await loginService(
                 formData
             );
 
             login(response);
 
-            navigate("/dashboard");
+
+            // -----------------------------
+            // ROLE-BASED REDIRECTION
+            // -----------------------------
+
+            const userRole =
+                response?.user?.role;
+
+
+            if (userRole === "admin") {
+
+                navigate("/admin");
+
+            } else if (
+                userRole === "vendor"
+            ) {
+
+                navigate("/vendor");
+
+            } else {
+
+                navigate("/dashboard");
+            }
 
         } catch (error) {
 
-            setMessage(
-                error.detail || "Login failed"
-            );
+            const backendError =
+                error?.response?.data?.detail;
+
+            if (Array.isArray(backendError)) {
+
+                setMessage(
+                    backendError[0]?.msg ||
+                    "Login failed"
+                );
+
+            } else {
+
+                setMessage(
+                    backendError ||
+                    "Login failed"
+                );
+            }
 
         } finally {
 

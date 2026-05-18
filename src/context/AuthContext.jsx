@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
             );
 
             logout();
+
         } finally {
 
             setLoading(false);
@@ -58,13 +59,17 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
 
-        const storedAuth = localStorage.getItem("auth");
+        const storedAuth =
+            localStorage.getItem("auth");
 
         if (storedAuth) {
 
-            const parsedAuth = JSON.parse(storedAuth);
+            const parsedAuth =
+                JSON.parse(storedAuth);
 
-            setToken(parsedAuth.access_token);
+            setToken(
+                parsedAuth.access_token
+            );
 
             fetchAuthenticatedUser();
 
@@ -83,7 +88,9 @@ export const AuthProvider = ({ children }) => {
     const login = (authData) => {
 
         localStorage.setItem(
+
             "auth",
+
             JSON.stringify(authData)
         );
 
@@ -99,7 +106,21 @@ export const AuthProvider = ({ children }) => {
     // LOGOUT
     // -----------------------------
 
-    const logout = () => {
+    const logout = async () => {
+
+        try {
+
+            await axiosInstance.post(
+                "/auth/logout"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Logout failed:",
+                error
+            );
+        }
 
         localStorage.removeItem("auth");
 
@@ -115,11 +136,19 @@ export const AuthProvider = ({ children }) => {
 
         <AuthContext.Provider
             value={{
+
                 user,
+
+                role: user?.role,
+
                 token,
+
                 loading,
+
                 isAuthenticated,
+
                 login,
+
                 logout,
             }}
         >

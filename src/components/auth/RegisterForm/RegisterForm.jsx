@@ -21,7 +21,9 @@ const RegisterForm = () => {
         username: "",
         full_name: "",
         email: "",
+        business_email: "",
         phone_number: "",
+        role: "user",
         password: "",
         confirm_password: "",
     });
@@ -177,8 +179,21 @@ const RegisterForm = () => {
 
             setMessage("");
 
+            const payload = {
+
+                ...formData,
+
+                business_email:
+
+                    formData.role === "vendor"
+
+                        ? formData.business_email
+
+                        : null
+            };
+
             const response = await registerService(
-                formData
+                payload
             );
 
             setMessage(response.message);
@@ -191,9 +206,23 @@ const RegisterForm = () => {
 
         } catch (error) {
 
-            setMessage(
-                error.detail || "Registration failed"
-            );
+            const backendError =
+                error?.response?.data?.detail;
+
+            if (Array.isArray(backendError)) {
+
+                setMessage(
+                    backendError[0]?.msg ||
+                    "Registration failed"
+                );
+
+            } else {
+
+                setMessage(
+                    backendError ||
+                    "Registration failed"
+                );
+            }
 
         } finally {
 
@@ -214,6 +243,45 @@ const RegisterForm = () => {
                 onSubmit={handleSubmit}
                 className="space-y-5"
             >
+
+                {/* ROLE SELECTION */}
+
+                <div>
+
+                    <select
+                        name="role"
+                        value={formData.role}
+                        onChange={handleChange}
+                        className="
+                            w-full
+                            rounded-xl
+                            bg-slate-900
+                            border
+                            border-slate-700
+                            px-4
+                            py-3
+                            text-white
+                            focus:outline-none
+                            focus:border-cyan-500
+                        "
+                    >
+
+                        <option value="user">
+
+                            Register as User
+
+                        </option>
+
+                        <option value="vendor">
+
+                            Register as Vendor
+
+                        </option>
+
+                    </select>
+
+                </div>
+
 
                 {/* USERNAME */}
 
@@ -291,6 +359,23 @@ const RegisterForm = () => {
                     onChange={handleChange}
                     required
                 />
+
+
+                {/* BUSINESS EMAIL FOR VENDORS */}
+
+                {
+                    formData.role === "vendor" && (
+
+                        <Input
+                            type="email"
+                            name="business_email"
+                            placeholder="Business Email Address"
+                            value={formData.business_email}
+                            onChange={handleChange}
+                            required
+                        />
+                    )
+                }
 
 
                 {/* PHONE NUMBER */}

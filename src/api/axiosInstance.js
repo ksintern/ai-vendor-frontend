@@ -5,6 +5,8 @@ const axiosInstance = axios.create({
 
     baseURL: import.meta.env.VITE_API_BASE_URL,
 
+    withCredentials: true,
+
     headers: {
 
         "Content-Type": "application/json",
@@ -60,28 +62,85 @@ axiosInstance.interceptors.request.use(
 
 // -----------------------------
 // RESPONSE INTERCEPTOR
+// ENTERPRISE TOKEN REFRESH
 // -----------------------------
 
 axiosInstance.interceptors.response.use(
 
     (response) => response,
 
-    (error) => {
+    async (error) => {
 
-        const status =
-            error.response?.status;
+        const originalRequest = error.config;
 
-        // TOKEN EXPIRED / INVALID
+        // ACCESS TOKEN EXPIRED
 
-        if (status === 401) {
+        if (
 
-            console.warn(
-                "Session expired. Logging out..."
-            );
+            error.response?.status === 401 &&
 
-            localStorage.removeItem("auth");
+            !originalRequest._retry
+        ) {
 
-            window.location.href = "/login";
+            originalRequest._retry = true;
+
+            try {
+
+                // REQUEST NEW ACCESS TOKEN
+
+                const response = await axios.post(
+
+                    `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+
+                    {},
+
+                    {
+                        withCredentials: true,
+                    }
+                );
+
+                // UPDATE LOCAL STORAGE
+
+                const storedAuth = JSON.parse(
+
+                    localStorage.getItem("auth")
+                );
+
+                const updatedAuth = {
+
+                    ...storedAuth,
+
+                    access_token:
+                        response.data.access_token,
+                };
+
+                localStorage.setItem(
+
+                    "auth",
+
+                    JSON.stringify(updatedAuth)
+                );
+
+                // RETRY ORIGINAL REQUEST
+
+                originalRequest.headers.Authorization =
+
+                    `Bearer ${response.data.access_token}`;
+
+                return axiosInstance(
+                    originalRequest
+                );
+
+            } catch (refreshError) {
+
+                console.warn(
+                    "Session expired. Logging out..."
+                );
+
+                localStorage.removeItem("auth");
+
+                window.location.href = "/login";
+            }
         }
 
         return Promise.reject(error);
