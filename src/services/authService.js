@@ -1,11 +1,22 @@
-import { loginApi } from "../api/authApi";
+import {
+    loginApi,
+    registerApi
+} from "../api/authApi";
 
 
-export const loginService = async (loginData) => {
+// -----------------------------
+// LOGIN SERVICE
+// -----------------------------
+
+export const loginService = async (
+    loginData
+) => {
 
     try {
 
-        const response = await loginApi(loginData);
+        const response = await loginApi(
+            loginData
+        );
 
         return response;
 
@@ -13,6 +24,31 @@ export const loginService = async (loginData) => {
 
         throw error.response?.data || {
             detail: "Login failed"
+        };
+    }
+};
+
+
+// -----------------------------
+// REGISTER SERVICE
+// -----------------------------
+
+export const registerService = async (
+    registerData
+) => {
+
+    try {
+
+        const response = await registerApi(
+            registerData
+        );
+
+        return response;
+
+    } catch (error) {
+
+        throw error.response?.data || {
+            detail: "Registration failed"
         };
     }
 };

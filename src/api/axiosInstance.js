@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 
 
 // -----------------------------
-// JWT AUTH INTERCEPTOR
+// REQUEST INTERCEPTOR
 // -----------------------------
 
 axiosInstance.interceptors.request.use(
@@ -37,6 +37,29 @@ axiosInstance.interceptors.request.use(
     },
 
     (error) => {
+
+        return Promise.reject(error);
+    }
+);
+
+
+// -----------------------------
+// RESPONSE INTERCEPTOR
+// -----------------------------
+
+axiosInstance.interceptors.response.use(
+
+    (response) => response,
+
+    (error) => {
+
+        // Unauthorized / Expired Token
+        if (error.response?.status === 401) {
+
+            localStorage.removeItem("auth");
+
+            window.location.href = "/login";
+        }
 
         return Promise.reject(error);
     }
