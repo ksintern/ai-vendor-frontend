@@ -14,11 +14,9 @@ export const loginService = async (
 
     try {
 
-        const response = await loginApi(
+        return await loginApi(
             loginData
         );
-
-        return response;
 
     } catch (error) {
 
@@ -39,11 +37,9 @@ export const registerService = async (
 
     try {
 
-        const response = await registerApi(
+        return await registerApi(
             registerData
         );
-
-        return response;
 
     } catch (error) {
 

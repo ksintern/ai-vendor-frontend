@@ -1,40 +1,109 @@
 import { useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import { loginService } from "../../../services/authService";
 
 import useAuth from "../../../hooks/useAuth";
 
+import AuthLayout from "../../layouts/AuthLayout/AuthLayout";
+
+import Input from "../../common/Input/Input";
+
+import Button from "../../common/Button/Button";
+
 
 const LoginForm = () => {
 
-    const {
-        login
-    } = useAuth();
+    const { login } = useAuth();
 
     const navigate = useNavigate();
 
+
     const [formData, setFormData] = useState({
-        email: "",
+
+        identifier: "",
         password: "",
     });
 
     const [message, setMessage] = useState("");
 
+    const [validationError, setValidationError] =
+        useState("");
+
     const [loading, setLoading] = useState(false);
+
+
+    // -----------------------------
+    // HANDLE INPUT CHANGE
+    // -----------------------------
 
     const handleChange = (e) => {
 
+        const { name, value } = e.target;
+
+
+        // IDENTIFIER SANITIZATION
+
+        if (name === "identifier") {
+
+            setFormData({
+
+                ...formData,
+
+                identifier: value.trimStart(),
+            });
+
+            return;
+        }
+
+
         setFormData({
+
             ...formData,
-            [e.target.name]: e.target.value,
+
+            [name]: value,
         });
     };
+
+
+    // -----------------------------
+    // HANDLE SUBMIT
+    // -----------------------------
 
     const handleSubmit = async (e) => {
 
         e.preventDefault();
+
+        setValidationError("");
+
+
+        // IDENTIFIER VALIDATION
+
+        if (
+            formData.identifier.trim().length < 3
+        ) {
+
+            setValidationError(
+                "Please enter a valid email or username"
+            );
+
+            return;
+        }
+
+
+        // PASSWORD VALIDATION
+
+        if (
+            formData.password.length < 8
+        ) {
+
+            setValidationError(
+                "Password must contain at least 8 characters"
+            );
+
+            return;
+        }
 
         try {
 
@@ -42,20 +111,12 @@ const LoginForm = () => {
 
             setMessage("");
 
-            const response = await loginService(formData);
-
-            console.log(
-                "Backend Response:",
-                response
+            const response = await loginService(
+                formData
             );
 
-            // Store complete auth object
             login(response);
 
-            // Display backend response
-            setMessage(response.message);
-
-            // Redirect to dashboard
             navigate("/dashboard");
 
         } catch (error) {
@@ -70,67 +131,140 @@ const LoginForm = () => {
         }
     };
 
+
     return (
 
-        <div className="flex items-center justify-center min-h-screen">
+        <AuthLayout
+            subtitle="
+                Access your AI vendor intelligence workspace
+            "
+        >
 
             <form
                 onSubmit={handleSubmit}
-                className="w-full max-w-md p-8 border rounded-lg shadow-lg"
+                className="space-y-5"
             >
 
-                <h2 className="text-2xl font-bold mb-6 text-center">
-                    Login
-                </h2>
+                {/* IDENTIFIER */}
 
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter email"
-                    value={formData.email}
+                <Input
+                    type="text"
+                    name="identifier"
+                    placeholder="Email or Username"
+                    value={formData.identifier}
                     onChange={handleChange}
-                    className="w-full p-3 border rounded mb-4"
                     required
                 />
 
-                <input
+
+                {/* PASSWORD */}
+
+                <Input
                     type="password"
                     name="password"
-                    placeholder="Enter password"
+                    placeholder="Password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full p-3 border rounded mb-4"
                     required
                 />
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-black text-white p-3 rounded"
-                >
 
-                    {
-                        loading
-                            ? "Logging in..."
-                            : "Login"
-                    }
+                {/* VALIDATION ERROR */}
 
-                </button>
+                {
+                    validationError && (
+
+                        <div
+                            className="
+                                bg-red-500/10
+                                border
+                                border-red-500/20
+                                text-red-300
+                                text-sm
+                                rounded-2xl
+                                p-4
+                            "
+                        >
+
+                            {validationError}
+
+                        </div>
+                    )
+                }
+
+
+                {/* API MESSAGE */}
 
                 {
                     message && (
 
-                        <p className="mt-4 text-center">
+                        <div
+                            className="
+                                bg-red-500/10
+                                border
+                                border-red-500/20
+                                text-red-300
+                                text-sm
+                                rounded-2xl
+                                p-4
+                            "
+                        >
 
                             {message}
 
-                        </p>
+                        </div>
                     )
                 }
 
+
+                {/* SUBMIT BUTTON */}
+
+                <Button
+                    type="submit"
+                    disabled={loading}
+                >
+
+                    {
+                        loading
+                            ? "Authenticating..."
+                            : "Access Platform"
+                    }
+
+                </Button>
+
+
+                {/* REGISTER LINK */}
+
+                <p
+                    className="
+                        text-sm
+                        text-slate-400
+                        text-center
+                    "
+                >
+
+                    Don’t have an account?
+                    {" "}
+
+                    <Link
+                        to="/register"
+
+                        className="
+                            text-cyan-400
+                            hover:text-cyan-300
+                            transition-colors
+                        "
+                    >
+
+                        Create Account
+
+                    </Link>
+
+                </p>
+
             </form>
 
-        </div>
+        </AuthLayout>
     );
 };
 

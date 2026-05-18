@@ -2,9 +2,11 @@ import axios from "axios";
 
 
 const axiosInstance = axios.create({
+
     baseURL: import.meta.env.VITE_API_BASE_URL,
 
     headers: {
+
         "Content-Type": "application/json",
     },
 });
@@ -18,19 +20,32 @@ axiosInstance.interceptors.request.use(
 
     (config) => {
 
-        const storedAuth = localStorage.getItem("auth");
+        try {
 
-        if (storedAuth) {
+            const storedAuth =
+                localStorage.getItem("auth");
 
-            const parsedAuth = JSON.parse(storedAuth);
+            if (storedAuth) {
 
-            const token = parsedAuth.access_token;
+                const parsedAuth =
+                    JSON.parse(storedAuth);
 
-            if (token) {
+                const token =
+                    parsedAuth?.access_token;
 
-                config.headers.Authorization =
-                    `Bearer ${token}`;
+                if (token) {
+
+                    config.headers.Authorization =
+                        `Bearer ${token}`;
+                }
             }
+
+        } catch (error) {
+
+            console.error(
+                "Token parsing failed:",
+                error
+            );
         }
 
         return config;
@@ -53,8 +68,16 @@ axiosInstance.interceptors.response.use(
 
     (error) => {
 
-        // Unauthorized / Expired Token
-        if (error.response?.status === 401) {
+        const status =
+            error.response?.status;
+
+        // TOKEN EXPIRED / INVALID
+
+        if (status === 401) {
+
+            console.warn(
+                "Session expired. Logging out..."
+            );
 
             localStorage.removeItem("auth");
 

@@ -5,11 +5,8 @@ const RegisterPage = () => {
 
     return (
 
-        <div>
+        <RegisterForm />
 
-            <RegisterForm />
-
-        </div>
     );
 };
 
