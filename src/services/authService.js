@@ -1,6 +1,13 @@
 import {
+
     loginApi,
-    registerApi
+
+    registerApi,
+
+    checkUsernameApi,
+
+    checkEmailApi
+
 } from "../api/authApi";
 
 
@@ -21,6 +28,7 @@ export const loginService = async (
     } catch (error) {
 
         throw error.response?.data || {
+
             detail: "Login failed"
         };
     }
@@ -44,7 +52,56 @@ export const registerService = async (
     } catch (error) {
 
         throw error.response?.data || {
+
             detail: "Registration failed"
+        };
+    }
+};
+
+
+// -----------------------------
+// CHECK USERNAME SERVICE
+// -----------------------------
+
+export const checkUsernameService = async (
+    username
+) => {
+
+    try {
+
+        return await checkUsernameApi(
+            username
+        );
+
+    } catch (error) {
+
+        throw error.response?.data || {
+
+            detail: "Username validation failed"
+        };
+    }
+};
+
+
+// -----------------------------
+// CHECK EMAIL SERVICE
+// -----------------------------
+
+export const checkEmailService = async (
+    email
+) => {
+
+    try {
+
+        return await checkEmailApi(
+            email
+        );
+
+    } catch (error) {
+
+        throw error.response?.data || {
+
+            detail: "Email validation failed"
         };
     }
 };

@@ -15,6 +15,8 @@ import AdminPage from "../pages/Admin/AdminPage";
 
 import VendorPage from "../pages/Vendor/VendorPage";
 
+import VendorDetailsPage from "../pages/VendorDetails/VendorDetailsPage";
+
 import ProtectedRoute from "../components/auth/ProtectedRoute/ProtectedRoute";
 
 
@@ -118,6 +120,28 @@ const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
+
+
+                {/* VENDOR MARKETPLACE */}
+
+                <Route
+                    path="/vendors"
+                    element={
+
+                        <ProtectedRoute
+                            allowedRoles={[
+                                "admin",
+                                "vendor",
+                                "user"
+                            ]}
+                        >
+
+                            <VendorDetailsPage />
+
+                        </ProtectedRoute>
+                    }
+                />
+
 
                 {/* UNAUTHORIZED */}
 

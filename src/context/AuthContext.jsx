@@ -4,7 +4,13 @@ import {
     useState
 } from "react";
 
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance, {
+
+    setAccessToken,
+
+    clearAccessToken
+
+} from "../api/axiosInstance";
 
 
 export const AuthContext = createContext();
@@ -22,31 +28,76 @@ export const AuthProvider = ({ children }) => {
 
 
     // -----------------------------
-    // VALIDATE USER SESSION
+    // RESTORE SESSION
     // -----------------------------
 
-    const fetchAuthenticatedUser = async () => {
+    const restoreSession = async () => {
 
         try {
 
-            const response = await axiosInstance.get(
-                "/auth/me"
+            // --------------------------------
+            // TRY REFRESH TOKEN
+            // --------------------------------
+
+            const refreshResponse =
+                await axiosInstance.post(
+                    "/auth/refresh"
+                );
+
+            const newAccessToken =
+                refreshResponse.data.access_token;
+
+            if (!newAccessToken) {
+
+                throw new Error(
+                    "No access token returned"
+                );
+            }
+
+            // --------------------------------
+            // STORE ACCESS TOKEN IN MEMORY
+            // --------------------------------
+
+            setAccessToken(
+                newAccessToken
             );
 
-            setUser(response.data.user);
+            setToken(
+                newAccessToken
+            );
+
+            // --------------------------------
+            // FETCH CURRENT USER
+            // --------------------------------
+
+            const userResponse =
+                await axiosInstance.get(
+                    "/auth/me"
+                );
+
+            setUser(
+                userResponse.data.user
+            );
 
             setIsAuthenticated(true);
 
         } catch (error) {
 
-            console.error(
-                "Authentication validation failed",
-                error
-            );
+            // --------------------------------
+            // SILENT FAIL
+            // USER IS JUST NOT LOGGED IN
+            // --------------------------------
 
-            logout();
+            clearAccessToken();
 
-        } finally {
+            setUser(null);
+
+            setToken(null);
+
+            setIsAuthenticated(false);
+        }
+
+        finally {
 
             setLoading(false);
         }
@@ -54,29 +105,12 @@ export const AuthProvider = ({ children }) => {
 
 
     // -----------------------------
-    // RESTORE SESSION
+    // INITIALIZE AUTH
     // -----------------------------
 
     useEffect(() => {
 
-        const storedAuth =
-            localStorage.getItem("auth");
-
-        if (storedAuth) {
-
-            const parsedAuth =
-                JSON.parse(storedAuth);
-
-            setToken(
-                parsedAuth.access_token
-            );
-
-            fetchAuthenticatedUser();
-
-        } else {
-
-            setLoading(false);
-        }
+        restoreSession();
 
     }, []);
 
@@ -87,16 +121,17 @@ export const AuthProvider = ({ children }) => {
 
     const login = (authData) => {
 
-        localStorage.setItem(
-
-            "auth",
-
-            JSON.stringify(authData)
+        setAccessToken(
+            authData.access_token
         );
 
-        setToken(authData.access_token);
+        setToken(
+            authData.access_token
+        );
 
-        setUser(authData.user);
+        setUser(
+            authData.user
+        );
 
         setIsAuthenticated(true);
     };
@@ -122,7 +157,11 @@ export const AuthProvider = ({ children }) => {
             );
         }
 
-        localStorage.removeItem("auth");
+        // --------------------------------
+        // CLEAR MEMORY TOKEN
+        // --------------------------------
+
+        clearAccessToken();
 
         setUser(null);
 

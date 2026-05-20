@@ -2,7 +2,15 @@ import { useState } from "react";
 
 import { useNavigate, Link } from "react-router-dom";
 
-import { registerService } from "../../../services/authService";
+import {
+
+    registerService,
+
+    checkUsernameService,
+
+    checkEmailService
+
+} from "../../../services/authService";
 
 import AuthLayout from "../../layouts/AuthLayout/AuthLayout";
 
@@ -35,11 +43,42 @@ const RegisterForm = () => {
     const [loading, setLoading] = useState(false);
 
 
+    // --------------------------------
+    // FORM VALIDATION STATE
+    // --------------------------------
+
+    const isFormValid =
+
+        formData.username.length >= 3 &&
+
+        formData.full_name.length >= 2 &&
+
+        formData.email &&
+
+        (
+            formData.role !== "vendor" ||
+
+            (
+                formData.business_email &&
+
+                formData.business_email !== formData.email
+            )
+        ) &&
+
+        formData.password &&
+
+        formData.confirm_password &&
+
+        formData.password === formData.confirm_password &&
+
+        !Object.values(errors).some(Boolean);
+
+
     // -----------------------------
     // HANDLE INPUT CHANGE
     // -----------------------------
 
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
 
         const { name, value } = e.target;
 
@@ -62,6 +101,30 @@ const RegisterForm = () => {
                 errorMessage =
                     "Username must contain at least 3 characters";
             }
+
+            // REAL-TIME USERNAME CHECK
+
+            else {
+
+                try {
+
+                    const response =
+                        await checkUsernameService(
+                            sanitizedValue
+                        );
+
+                    if (!response.available) {
+
+                        errorMessage =
+                            "Username already taken";
+                    }
+
+                } catch {
+
+                    errorMessage =
+                        "Unable to validate username";
+                }
+            }
         }
 
 
@@ -81,6 +144,72 @@ const RegisterForm = () => {
 
                 errorMessage =
                     "Full name must contain at least 2 characters";
+            }
+        }
+
+
+        // EMAIL VALIDATION
+
+        if (name === "email") {
+
+            const emailRegex =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (
+                value &&
+                !emailRegex.test(value)
+            ) {
+
+                errorMessage =
+                    "Invalid email format";
+            }
+
+            else {
+
+                try {
+
+                    const response =
+                        await checkEmailService(
+                            value
+                        );
+
+                    if (!response.available) {
+
+                        errorMessage =
+                            "Email already registered";
+                    }
+
+                } catch {
+
+                    errorMessage =
+                        "Unable to validate email";
+                }
+            }
+
+            // EMAIL + BUSINESS EMAIL MATCH
+
+            if (
+                formData.role === "vendor" &&
+                value === formData.business_email
+            ) {
+
+                errorMessage =
+                    "Personal email and business email cannot be the same";
+            }
+        }
+
+
+        // BUSINESS EMAIL VALIDATION
+
+        if (name === "business_email") {
+
+            if (
+                value &&
+                value === formData.email
+            ) {
+
+                errorMessage =
+                    "Personal email and business email cannot be the same";
             }
         }
 
@@ -137,20 +266,20 @@ const RegisterForm = () => {
         }
 
 
-        setErrors({
+        setErrors((prev) => ({
 
-            ...errors,
+            ...prev,
 
             [name]: errorMessage,
-        });
+        }));
 
 
-        setFormData({
+        setFormData((prev) => ({
 
-            ...formData,
+            ...prev,
 
             [name]: sanitizedValue,
-        });
+        }));
     };
 
 
@@ -162,8 +291,6 @@ const RegisterForm = () => {
 
         e.preventDefault();
 
-
-        // CHECK IF ERRORS EXIST
 
         const hasErrors = Object.values(errors)
             .some((error) => error);
@@ -178,6 +305,8 @@ const RegisterForm = () => {
             setLoading(true);
 
             setMessage("");
+
+            setErrors({});
 
             const payload = {
 
@@ -209,17 +338,60 @@ const RegisterForm = () => {
             const backendError =
                 error?.response?.data?.detail;
 
-            if (Array.isArray(backendError)) {
+            // USERNAME EXISTS
+
+            if (
+                typeof backendError === "string" &&
+                backendError.toLowerCase().includes("username")
+            ) {
+
+                setErrors((prev) => ({
+
+                    ...prev,
+
+                    username: backendError
+                }));
+
+            }
+
+            // EMAIL EXISTS
+
+            else if (
+                typeof backendError === "string" &&
+                backendError.toLowerCase().includes("email")
+            ) {
+
+                setErrors((prev) => ({
+
+                    ...prev,
+
+                    email: backendError
+                }));
+
+            }
+
+            // BUSINESS EMAIL ISSUE
+
+            else if (
+                typeof backendError === "string" &&
+                backendError.toLowerCase().includes("business")
+            ) {
+
+                setErrors((prev) => ({
+
+                    ...prev,
+
+                    business_email: backendError
+                }));
+
+            }
+
+            else {
 
                 setMessage(
-                    backendError[0]?.msg ||
-                    "Registration failed"
-                );
 
-            } else {
-
-                setMessage(
                     backendError ||
+
                     "Registration failed"
                 );
             }
@@ -299,13 +471,7 @@ const RegisterForm = () => {
                     {
                         errors.username && (
 
-                            <p
-                                className="
-                                    mt-2
-                                    text-sm
-                                    text-red-400
-                                "
-                            >
+                            <p className="mt-2 text-sm text-red-400">
 
                                 {errors.username}
 
@@ -332,13 +498,7 @@ const RegisterForm = () => {
                     {
                         errors.full_name && (
 
-                            <p
-                                className="
-                                    mt-2
-                                    text-sm
-                                    text-red-400
-                                "
-                            >
+                            <p className="mt-2 text-sm text-red-400">
 
                                 {errors.full_name}
 
@@ -351,29 +511,59 @@ const RegisterForm = () => {
 
                 {/* EMAIL */}
 
-                <Input
-                    type="email"
-                    name="email"
-                    placeholder="Email Address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                />
+                <div>
+
+                    <Input
+                        type="email"
+                        name="email"
+                        placeholder="Email Address"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                    />
+
+                    {
+                        errors.email && (
+
+                            <p className="mt-2 text-sm text-red-400">
+
+                                {errors.email}
+
+                            </p>
+                        )
+                    }
+
+                </div>
 
 
-                {/* BUSINESS EMAIL FOR VENDORS */}
+                {/* BUSINESS EMAIL */}
 
                 {
                     formData.role === "vendor" && (
 
-                        <Input
-                            type="email"
-                            name="business_email"
-                            placeholder="Business Email Address"
-                            value={formData.business_email}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div>
+
+                            <Input
+                                type="email"
+                                name="business_email"
+                                placeholder="Business Email Address"
+                                value={formData.business_email}
+                                onChange={handleChange}
+                                required
+                            />
+
+                            {
+                                errors.business_email && (
+
+                                    <p className="mt-2 text-sm text-red-400">
+
+                                        {errors.business_email}
+
+                                    </p>
+                                )
+                            }
+
+                        </div>
                     )
                 }
 
@@ -393,13 +583,7 @@ const RegisterForm = () => {
                     {
                         errors.phone_number && (
 
-                            <p
-                                className="
-                                    mt-2
-                                    text-sm
-                                    text-red-400
-                                "
-                            >
+                            <p className="mt-2 text-sm text-red-400">
 
                                 {errors.phone_number}
 
@@ -426,13 +610,7 @@ const RegisterForm = () => {
                     {
                         errors.password && (
 
-                            <p
-                                className="
-                                    mt-2
-                                    text-sm
-                                    text-red-400
-                                "
-                            >
+                            <p className="mt-2 text-sm text-red-400">
 
                                 {errors.password}
 
@@ -459,13 +637,7 @@ const RegisterForm = () => {
                     {
                         errors.confirm_password && (
 
-                            <p
-                                className="
-                                    mt-2
-                                    text-sm
-                                    text-red-400
-                                "
-                            >
+                            <p className="mt-2 text-sm text-red-400">
 
                                 {errors.confirm_password}
 
@@ -517,7 +689,7 @@ const RegisterForm = () => {
 
                 <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !isFormValid}
                 >
 
                     {

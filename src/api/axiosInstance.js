@@ -1,53 +1,92 @@
 import axios from "axios";
 
 
+// ------------------------------------
+// ACCESS TOKEN IN MEMORY
+// ------------------------------------
+
+let accessToken = null;
+
+
+// ------------------------------------
+// REFRESH STATE
+// ------------------------------------
+
+let isRefreshing = false;
+
+let failedQueue = [];
+
+
+// ------------------------------------
+// PROCESS QUEUE
+// ------------------------------------
+
+const processQueue = (
+    error,
+    token = null
+) => {
+
+    failedQueue.forEach((promise) => {
+
+        if (error) {
+
+            promise.reject(error);
+
+        } else {
+
+            promise.resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
+
+
+// ------------------------------------
+// SET ACCESS TOKEN
+// ------------------------------------
+
+export const setAccessToken = (token) => {
+
+    accessToken = token;
+};
+
+
+// ------------------------------------
+// CLEAR ACCESS TOKEN
+// ------------------------------------
+
+export const clearAccessToken = () => {
+
+    accessToken = null;
+};
+
+
+// ------------------------------------
+// AXIOS INSTANCE
+// ------------------------------------
+
 const axiosInstance = axios.create({
 
     baseURL: import.meta.env.VITE_API_BASE_URL,
 
-    withCredentials: true,
-
-    headers: {
-
-        "Content-Type": "application/json",
-    },
+    withCredentials: true
 });
 
 
-// -----------------------------
+// ------------------------------------
 // REQUEST INTERCEPTOR
-// -----------------------------
+// ------------------------------------
 
 axiosInstance.interceptors.request.use(
 
     (config) => {
 
-        try {
+        if (accessToken) {
 
-            const storedAuth =
-                localStorage.getItem("auth");
+            config.headers.Authorization =
 
-            if (storedAuth) {
-
-                const parsedAuth =
-                    JSON.parse(storedAuth);
-
-                const token =
-                    parsedAuth?.access_token;
-
-                if (token) {
-
-                    config.headers.Authorization =
-                        `Bearer ${token}`;
-                }
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Token parsing failed:",
-                error
-            );
+                `Bearer ${accessToken}`;
         }
 
         return config;
@@ -60,10 +99,9 @@ axiosInstance.interceptors.request.use(
 );
 
 
-// -----------------------------
+// ------------------------------------
 // RESPONSE INTERCEPTOR
-// ENTERPRISE TOKEN REFRESH
-// -----------------------------
+// ------------------------------------
 
 axiosInstance.interceptors.response.use(
 
@@ -73,7 +111,23 @@ axiosInstance.interceptors.response.use(
 
         const originalRequest = error.config;
 
-        // ACCESS TOKEN EXPIRED
+        // ------------------------------------
+        // PREVENT REFRESH LOOP
+        // ------------------------------------
+
+        if (
+
+            originalRequest?.url?.includes(
+                "/auth/refresh"
+            )
+        ) {
+
+            return Promise.reject(error);
+        }
+
+        // ------------------------------------
+        // HANDLE 401
+        // ------------------------------------
 
         if (
 
@@ -82,11 +136,45 @@ axiosInstance.interceptors.response.use(
             !originalRequest._retry
         ) {
 
+            // ------------------------------------
+            // ALREADY REFRESHING
+            // ------------------------------------
+
+            if (isRefreshing) {
+
+                return new Promise(
+
+                    (resolve, reject) => {
+
+                        failedQueue.push({
+
+                            resolve,
+
+                            reject
+                        });
+                    }
+
+                ).then((token) => {
+
+                    originalRequest.headers.Authorization =
+
+                        `Bearer ${token}`;
+
+                    return axiosInstance(
+                        originalRequest
+                    );
+                });
+            }
+
             originalRequest._retry = true;
+
+            isRefreshing = true;
 
             try {
 
+                // ------------------------------------
                 // REQUEST NEW ACCESS TOKEN
+                // ------------------------------------
 
                 const response = await axios.post(
 
@@ -99,33 +187,27 @@ axiosInstance.interceptors.response.use(
                     }
                 );
 
-                // UPDATE LOCAL STORAGE
+                const newAccessToken =
+                    response.data.access_token;
 
-                const storedAuth = JSON.parse(
+                // ------------------------------------
+                // STORE IN MEMORY
+                // ------------------------------------
 
-                    localStorage.getItem("auth")
+                accessToken = newAccessToken;
+
+                processQueue(
+                    null,
+                    newAccessToken
                 );
 
-                const updatedAuth = {
-
-                    ...storedAuth,
-
-                    access_token:
-                        response.data.access_token,
-                };
-
-                localStorage.setItem(
-
-                    "auth",
-
-                    JSON.stringify(updatedAuth)
-                );
-
+                // ------------------------------------
                 // RETRY ORIGINAL REQUEST
+                // ------------------------------------
 
                 originalRequest.headers.Authorization =
 
-                    `Bearer ${response.data.access_token}`;
+                    `Bearer ${newAccessToken}`;
 
                 return axiosInstance(
                     originalRequest
@@ -133,13 +215,22 @@ axiosInstance.interceptors.response.use(
 
             } catch (refreshError) {
 
-                console.warn(
-                    "Session expired. Logging out..."
+                processQueue(
+                    refreshError,
+                    null
                 );
 
-                localStorage.removeItem("auth");
+                accessToken = null;
 
                 window.location.href = "/login";
+
+                return Promise.reject(
+                    refreshError
+                );
+
+            } finally {
+
+                isRefreshing = false;
             }
         }
 
