@@ -1,54 +1,207 @@
-import { useTheme } from "../../../context/ThemeContext";
+import { Loader2 } from "lucide-react";
+
+import {
+
+useTheme
+
+} from "../../../context/ThemeContext";
 
 
-const Button = ({
-    children,
-    type = "button",
-    onClick,
-    disabled = false,
-}) => {
+const Button=({
 
-    const theme = useTheme();
+children,
+type="button",
+onClick,
+disabled=false,
+loading=false,
+variant="primary",
+icon=null,
+fullWidth=true,
+className=""
 
-    return (
+})=>{
 
-        <button
-            type={type}
+const theme=
 
-            onClick={onClick}
+useTheme();
 
-            disabled={disabled}
 
-            className={`
-                w-full
+const variants={
 
-                px-6
-                py-4
+primary:`
 
-                ${theme.colors.primary}
+bg-indigo-600
 
-                ${theme.radius.button}
+text-white
 
-                text-white
-                font-semibold
+hover:bg-indigo-700
 
-                transition-all
-                duration-300
+shadow-lg
 
-                hover:scale-[1.01]
-                active:scale-[0.99]
+shadow-indigo-200
 
-                disabled:opacity-60
-                disabled:cursor-not-allowed
+`,
 
-                shadow-xl
-            `}
-        >
+secondary:`
 
-            {children}
+bg-slate-100
 
-        </button>
-    );
+text-slate-700
+
+hover:bg-slate-200
+
+border
+
+border-slate-200
+
+`,
+
+danger:`
+
+bg-red-600
+
+text-white
+
+hover:bg-red-700
+
+shadow-lg
+
+shadow-red-100
+
+`,
+
+outline:`
+
+border
+
+border-indigo-200
+
+bg-white
+
+text-indigo-600
+
+hover:bg-indigo-50
+
+`
+
+};
+
+
+return(
+
+<button
+
+type={type}
+
+onClick={onClick}
+
+disabled={
+
+disabled||
+
+loading
+
+}
+
+className={`
+
+${
+
+fullWidth
+
+?
+
+"w-full"
+
+:
+
+""
+
+}
+
+px-6
+
+py-4
+
+rounded-2xl
+
+font-semibold
+
+flex
+
+items-center
+
+justify-center
+
+gap-3
+
+transition-all
+
+duration-300
+
+hover:scale-[1.02]
+
+active:scale-[0.98]
+
+disabled:opacity-50
+
+disabled:cursor-not-allowed
+
+${
+
+variants[variant]
+
+}
+
+${className}
+
+`}
+
+>
+
+{
+
+loading
+
+?
+
+(
+
+<Loader2
+
+size={18}
+
+className="
+
+animate-spin
+
+"
+
+/>
+
+)
+
+:
+
+icon
+
+}
+
+
+<span>
+
+{
+
+children
+
+}
+
+</span>
+
+</button>
+
+);
+
 };
 
 export default Button;

@@ -1,18 +1,48 @@
 import AppRoutes from "./routes/AppRoutes";
 
-import { ThemeProvider } from "./context/ThemeContext";
+import {
+
+ThemeProvider
+
+} from "./context/ThemeContext";
+
+import "@fontsource/inter/400.css";
+
+import "@fontsource/inter/500.css";
+
+import "@fontsource/inter/600.css";
+
+import "@fontsource/inter/700.css";
+
+import "./index.css";
 
 
-function App() {
+function App(){
 
-    return (
+return(
 
-        <ThemeProvider>
+<div
 
-            <AppRoutes />
+className="
 
-        </ThemeProvider>
-    );
+font-sans
+antialiased
+
+"
+
+>
+
+<ThemeProvider>
+
+<AppRoutes/>
+
+</ThemeProvider>
+
+</div>
+
+);
+
 }
+
 
 export default App;

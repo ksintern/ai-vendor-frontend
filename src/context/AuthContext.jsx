@@ -1,199 +1,294 @@
 import {
-    createContext,
-    useEffect,
-    useState
+
+createContext,
+useEffect,
+useState
+
 } from "react";
 
-import axiosInstance, {
+import axiosInstance,{
 
-    setAccessToken,
-
-    clearAccessToken
+setAccessToken,
+clearAccessToken
 
 } from "../api/axiosInstance";
 
 
-export const AuthContext = createContext();
+export const AuthContext=
 
+createContext();
 
-export const AuthProvider = ({ children }) => {
 
-    const [user, setUser] = useState(null);
+export const AuthProvider=({
 
-    const [token, setToken] = useState(null);
+children
 
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+})=>{
 
-    const [loading, setLoading] = useState(true);
 
+const[
 
-    // -----------------------------
-    // RESTORE SESSION
-    // -----------------------------
+user,
+setUser
 
-    const restoreSession = async () => {
+]=useState(null);
 
-        try {
 
-            // --------------------------------
-            // TRY REFRESH TOKEN
-            // --------------------------------
+const[
 
-            const refreshResponse =
-                await axiosInstance.post(
-                    "/auth/refresh"
-                );
+loading,
+setLoading
 
-            const newAccessToken =
-                refreshResponse.data.access_token;
+]=useState(true);
 
-            if (!newAccessToken) {
 
-                throw new Error(
-                    "No access token returned"
-                );
-            }
+const[
 
-            // --------------------------------
-            // STORE ACCESS TOKEN IN MEMORY
-            // --------------------------------
+isAuthenticated,
+setIsAuthenticated
 
-            setAccessToken(
-                newAccessToken
-            );
+]=useState(false);
 
-            setToken(
-                newAccessToken
-            );
 
-            // --------------------------------
-            // FETCH CURRENT USER
-            // --------------------------------
+// ====================================
+// RESTORE SESSION
+// ====================================
 
-            const userResponse =
-                await axiosInstance.get(
-                    "/auth/me"
-                );
+const restoreSession=
 
-            setUser(
-                userResponse.data.user
-            );
+async()=>{
 
-            setIsAuthenticated(true);
+try{
 
-        } catch (error) {
+setLoading(true);
 
-            // --------------------------------
-            // SILENT FAIL
-            // USER IS JUST NOT LOGGED IN
-            // --------------------------------
 
-            clearAccessToken();
+// ALWAYS REFRESH
 
-            setUser(null);
+const refresh=
 
-            setToken(null);
+await axiosInstance.post(
 
-            setIsAuthenticated(false);
-        }
+"/auth/refresh"
 
-        finally {
+);
 
-            setLoading(false);
-        }
-    };
 
+const accessToken=
 
-    // -----------------------------
-    // INITIALIZE AUTH
-    // -----------------------------
+refresh.data?.data?.access_token||
 
-    useEffect(() => {
+refresh.data?.access_token;
 
-        restoreSession();
 
-    }, []);
+if(
 
+!accessToken
 
-    // -----------------------------
-    // LOGIN
-    // -----------------------------
+){
 
-    const login = (authData) => {
+throw Error();
 
-        setAccessToken(
-            authData.access_token
-        );
+}
 
-        setToken(
-            authData.access_token
-        );
 
-        setUser(
-            authData.user
-        );
+setAccessToken(
 
-        setIsAuthenticated(true);
-    };
+accessToken
 
+);
 
-    // -----------------------------
-    // LOGOUT
-    // -----------------------------
 
-    const logout = async () => {
+const me=
 
-        try {
+await axiosInstance.get(
 
-            await axiosInstance.post(
-                "/auth/logout"
-            );
+"/auth/me"
 
-        } catch (error) {
+);
 
-            console.error(
-                "Logout failed:",
-                error
-            );
-        }
 
-        // --------------------------------
-        // CLEAR MEMORY TOKEN
-        // --------------------------------
+const currentUser=
 
-        clearAccessToken();
+me.data?.data?.user||
 
-        setUser(null);
+me.data?.user;
 
-        setToken(null);
 
-        setIsAuthenticated(false);
-    };
+if(
 
+!currentUser
 
-    return (
+){
 
-        <AuthContext.Provider
-            value={{
+throw Error();
 
-                user,
+}
 
-                role: user?.role,
 
-                token,
+setUser(
 
-                loading,
+currentUser
 
-                isAuthenticated,
+);
 
-                login,
 
-                logout,
-            }}
-        >
+setIsAuthenticated(
 
-            {children}
+true
 
-        </AuthContext.Provider>
-    );
+);
+
+}
+
+catch(error){
+
+clearAccessToken();
+
+setUser(null);
+
+setIsAuthenticated(false);
+
+}
+
+finally{
+
+setLoading(false);
+
+}
+
+};
+
+
+useEffect(()=>{
+
+restoreSession();
+
+},[]);
+
+
+// ====================================
+// LOGIN
+// ====================================
+
+const login=(
+
+authData
+
+)=>{
+
+const token=
+
+authData?.data?.access_token||
+
+authData?.access_token;
+
+
+const currentUser=
+
+authData?.data?.user||
+
+authData?.user;
+
+
+if(
+
+!token
+
+){
+
+return;
+
+}
+
+
+setAccessToken(
+
+token
+
+);
+
+
+setUser(
+
+currentUser
+
+);
+
+
+setIsAuthenticated(
+
+true
+
+);
+
+};
+
+
+// ====================================
+// LOGOUT
+// ====================================
+
+const logout=
+
+async()=>{
+
+try{
+
+await axiosInstance.post(
+
+"/auth/logout"
+
+);
+
+}
+
+catch(error){
+
+console.log(error);
+
+}
+
+
+clearAccessToken();
+
+setUser(null);
+
+setIsAuthenticated(false);
+
+};
+
+
+// ====================================
+// PROVIDER
+// ====================================
+
+return(
+
+<AuthContext.Provider
+
+value={{
+
+user,
+
+role:user?.role,
+
+loading,
+
+login,
+
+logout,
+
+isAuthenticated
+
+}}
+
+>
+
+{children}
+
+</AuthContext.Provider>
+
+);
+
 };

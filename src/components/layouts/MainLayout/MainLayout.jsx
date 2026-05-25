@@ -1,113 +1,329 @@
-import { useState } from "react";
+import {
 
-import Navbar from "../Navbar/Navbar";
+useState,
+useEffect
 
-import Sidebar from "../Sidebar/Sidebar";
+} from "react";
 
-import { useTheme } from "../../../context/ThemeContext";
+import Navbar
+from "../Navbar/Navbar";
 
+import Sidebar
+from "../Sidebar/Sidebar";
 
-const MainLayout = ({
-    children
-}) => {
+import {
 
-    const theme = useTheme();
+useTheme
 
-    const [sidebarOpen, setSidebarOpen] =
-        useState(false);
+} from "../../../context/ThemeContext";
 
+const MainLayout=({
 
-    return (
+children
 
-        <div
-            className={`
-                min-h-screen
-                flex
-                overflow-hidden
-                relative
+})=>{
 
-                ${theme.colors.background}
-            `}
-        >
+const theme=
 
-            {/* MOBILE OVERLAY */}
+useTheme();
 
-            {
-                sidebarOpen && (
+const[
 
-                    <div
-                        onClick={() =>
-                            setSidebarOpen(false)
-                        }
+sidebarCollapsed,
+setSidebarCollapsed
 
-                        className="
-                            fixed
-                            inset-0
-                            bg-black/60
-                            backdrop-blur-sm
-                            z-40
+]=useState(false);
 
-                            lg:hidden
-                        "
-                    />
-                )
-            }
+const[
 
+mobileSidebar,
+setMobileSidebar
 
-            {/* SIDEBAR */}
+]=useState(false);
 
-            <Sidebar
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-            />
+const[
 
+isMobile,
+setIsMobile
 
-            {/* MAIN CONTENT */}
+]=useState(
 
-            <div
-                className="
-                    flex-1
-                    flex
-                    flex-col
-                    overflow-hidden
-                "
-            >
+window.innerWidth<1024
 
-                {/* NAVBAR */}
+);
 
-                <Navbar
-                    setSidebarOpen={setSidebarOpen}
-                />
+useEffect(()=>{
 
+const handleResize=()=>{
 
-                {/* PAGE AREA */}
+const mobile=
 
-                <main
-                    className="
-                        flex-1
-                        overflow-y-auto
+window.innerWidth<1024;
 
-                        px-5
-                        py-6
+setIsMobile(
 
-                        md:px-8
-                        lg:px-14
-                        lg:py-10
-                    "
-                >
+mobile
 
-                    <div className="max-w-[1600px]">
+);
 
-                        {children}
+if(
 
-                    </div>
+!mobile
 
-                </main>
+){
 
-            </div>
+setMobileSidebar(
 
-        </div>
-    );
+false
+
+);
+
+}
+
+};
+
+window.addEventListener(
+
+"resize",
+
+handleResize
+
+);
+
+return()=>{
+
+window.removeEventListener(
+
+"resize",
+
+handleResize
+
+);
+
+};
+
+},[]);
+
+const handleSidebarToggle=()=>{
+
+if(
+
+isMobile
+
+){
+
+setMobileSidebar(
+
+previous=>
+
+!previous
+
+);
+
+return;
+
+}
+
+setSidebarCollapsed(
+
+previous=>
+
+!previous
+
+);
+
+};
+
+return(
+
+<div
+
+className={`
+
+min-h-screen
+
+flex
+
+overflow-hidden
+
+relative
+
+${
+
+theme.colors.background
+
+}
+
+`}
+
+>
+
+{
+
+mobileSidebar&&(
+
+<div
+
+onClick={()=>
+
+setMobileSidebar(
+
+false
+
+)
+
+}
+
+className="
+
+fixed
+
+inset-0
+
+bg-black/30
+
+backdrop-blur-sm
+
+z-40
+
+lg:hidden
+
+"
+
+/>
+
+)
+
+}
+
+<Sidebar
+
+sidebarOpen={
+
+mobileSidebar
+
+}
+
+setSidebarOpen={
+
+setMobileSidebar
+
+}
+
+collapsed={
+
+sidebarCollapsed
+
+}
+
+setCollapsed={
+
+setSidebarCollapsed
+
+}
+
+/>
+
+<div
+
+className={`
+
+flex-1
+
+flex
+
+flex-col
+
+transition-all
+
+duration-300
+
+min-w-0
+
+${
+
+sidebarCollapsed
+
+?
+
+"lg:ml-[95px]"
+
+:
+
+"lg:ml-[280px]"
+
+}
+
+`}
+
+>
+
+<Navbar
+
+toggleSidebar={
+
+handleSidebarToggle
+
+}
+
+setSidebarOpen={
+
+setMobileSidebar
+
+}
+
+/>
+
+<main
+
+className="
+
+flex-1
+
+overflow-y-auto
+
+px-6
+
+py-6
+
+md:px-8
+
+lg:px-10
+
+lg:py-8
+
+"
+
+>
+
+<div
+
+className="
+
+max-w-[1550px]
+
+mx-auto
+
+"
+
+>
+
+{
+
+children
+
+}
+
+</div>
+
+</main>
+
+</div>
+
+</div>
+
+);
+
 };
 
 export default MainLayout;

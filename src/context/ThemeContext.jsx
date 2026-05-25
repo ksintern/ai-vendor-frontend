@@ -1,82 +1,280 @@
 import {
-    createContext,
-    useContext
+
+createContext,
+useContext
+
 } from "react";
 
+const ThemeContext=
 
-const ThemeContext = createContext();
+createContext();
 
+export const ThemeProvider=({
 
-export const ThemeProvider = ({
-    children
-}) => {
+children
 
-    const theme = {
+})=>{
 
-        colors: {
+const theme={
 
-            background:
-                "bg-gradient-to-br from-slate-950 via-[#071326] to-[#020617]",
+colors:{
 
-            card:
-                "bg-slate-900/60 backdrop-blur-xl border border-cyan-500/10 shadow-2xl",
+background:`
 
-            primary:
-                "bg-cyan-600 hover:bg-cyan-700",
+bg-gradient-to-br
 
-            secondary:
-                "bg-slate-800 hover:bg-slate-700",
+from-[#F8FAFF]
 
-            input:
-                "bg-slate-950/70 border border-slate-700 text-white placeholder-slate-400 focus:ring-2 focus:ring-cyan-500 focus:outline-none",
+via-[#F5F7FC]
 
-            textPrimary:
-                "text-white",
+to-[#EEF2FF]
 
-            textSecondary:
-                "text-slate-400",
+`,
 
-            accent:
-                "text-cyan-400",
+sidebar:`
 
-            analytics:
-                "text-blue-400",
-        },
+bg-white/75
 
-        spacing: {
+backdrop-blur-2xl
 
-            section:
-                "px-6 py-10",
+border-r
 
-            cardPadding:
-                "p-8",
-        },
+border-slate-200
 
-        radius: {
+shadow-[0_10px_35px_rgba(15,23,42,0.06)]
 
-            card:
-                "rounded-3xl",
+`,
 
-            button:
-                "rounded-2xl",
+navbar:`
 
-            input:
-                "rounded-2xl",
-        }
-    };
+bg-white/70
 
-    return (
+backdrop-blur-2xl
 
-        <ThemeContext.Provider value={theme}>
+border-b
 
-            {children}
+border-slate-200
 
-        </ThemeContext.Provider>
-    );
+shadow-sm
+
+`,
+
+card:`
+
+glass
+
+bg-white/75
+
+border
+
+border-white/60
+
+shadow-md
+
+hover:shadow-xl
+
+transition-all
+
+duration-300
+
+`,
+
+input:`
+
+bg-white/80
+
+border
+
+border-slate-200
+
+text-slate-700
+
+placeholder-slate-400
+
+focus:ring-4
+
+focus:ring-indigo-100
+
+focus:border-indigo-500
+
+outline-none
+
+shadow-sm
+
+transition-all
+
+duration-200
+
+`,
+
+primary:`
+
+bg-gradient-to-r
+
+from-indigo-600
+
+to-violet-600
+
+hover:from-indigo-700
+
+hover:to-violet-700
+
+`,
+
+secondary:`
+
+bg-slate-100
+
+hover:bg-slate-200
+
+text-slate-700
+
+`,
+
+success:
+
+"text-emerald-600",
+
+warning:
+
+"text-orange-500",
+
+danger:
+
+"text-red-500",
+
+purple:
+
+"text-violet-600",
+
+accent:
+
+"text-indigo-600",
+
+textPrimary:
+
+"text-slate-900",
+
+textSecondary:
+
+"text-slate-500"
+
+},
+
+radius:{
+
+card:
+
+"rounded-[30px]",
+
+button:
+
+"rounded-2xl",
+
+input:
+
+"rounded-2xl"
+
+},
+
+spacing:{
+
+section:
+
+"px-8 py-8",
+
+cardPadding:
+
+"p-7"
+
+},
+
+shadow:{
+
+premium:`
+
+shadow-[0_20px_50px_rgba(99,102,241,0.10)]
+
+`,
+
+card:`
+
+shadow-[0_10px_30px_rgba(15,23,42,0.08)]
+
+`
+
+},
+
+animation:{
+
+hover:`
+
+hover:-translate-y-1
+
+transition-all
+
+duration-300
+
+`,
+
+button:`
+
+transition-all
+
+duration-200
+
+active:scale-[0.98]
+
+`
+
+}
+
 };
 
+return(
 
-export const useTheme = () => {
+<ThemeContext.Provider
 
-    return useContext(ThemeContext);
+value={theme}
+
+>
+
+{
+
+children
+
+}
+
+</ThemeContext.Provider>
+
+);
+
+};
+
+export const useTheme=()=>{
+
+const context=
+
+useContext(
+
+ThemeContext
+
+);
+
+if(
+
+!context
+
+){
+
+throw new Error(
+
+"useTheme must be used inside ThemeProvider"
+
+);
+
+}
+
+return context;
+
 };

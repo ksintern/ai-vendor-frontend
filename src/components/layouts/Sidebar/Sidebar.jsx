@@ -1,11 +1,14 @@
 import {
     LayoutDashboard,
+    Building2,
     User,
-    Search,
-    Settings,
     Bookmark,
-    BrainCircuit,
+    Settings,
     LogOut,
+    BrainCircuit,
+    ChevronLeft,
+    ChevronRight,
+    Sparkles,
     X
 } from "lucide-react";
 
@@ -16,329 +19,510 @@ import {
 
 import useAuth from "../../../hooks/useAuth";
 
-import { useTheme } from "../../../context/ThemeContext";
-
+import {
+    useTheme
+} from "../../../context/ThemeContext";
 
 const Sidebar = ({
     sidebarOpen,
-    setSidebarOpen
+    setSidebarOpen,
+    collapsed,
+    setCollapsed
 }) => {
 
     const navigate = useNavigate();
 
     const location = useLocation();
 
-    const { logout } = useAuth();
+    const {
+        logout
+    } = useAuth();
 
-    const theme = useTheme();
-
-
-    const handleNavigation = (path) => {
-
-        navigate(path);
-
-        setSidebarOpen(false);
-    };
-
-
-    const handleLogout = () => {
-
-        logout();
-
-        setSidebarOpen(false);
-    };
-
+    useTheme();
 
     const menuItems = [
 
         {
             label: "Dashboard",
-            icon: <LayoutDashboard size={20} />,
-            path: "/dashboard",
+            icon: <LayoutDashboard size={22} />,
+            path: "/dashboard"
         },
 
         {
-            label: "Vendor Discovery",
-            icon: <Search size={20} />,
-            path: "/vendors",
-        },
-
-        {
-            label: "AI Recommendations",
-            icon: <BrainCircuit size={20} />,
-            path: "/recommendations",
-        },
-
-        {
-            label: "Saved Vendors",
-            icon: <Bookmark size={20} />,
-            path: "/saved-vendors",
+            label: "Vendor Marketplace",
+            icon: <Building2 size={22} />,
+            path: "/vendors"
         },
 
         {
             label: "Profile",
-            icon: <User size={20} />,
-            path: "/profile",
+            icon: <User size={22} />,
+            path: "/profile"
+        },
+
+        {
+            label: "Recommendations",
+            icon: <BrainCircuit size={22} />,
+            path: "/recommendations"
+        },
+
+        {
+            label: "Saved Vendors",
+            icon: <Bookmark size={22} />,
+            path: "/saved-vendors"
         },
 
         {
             label: "Settings",
-            icon: <Settings size={20} />,
-            path: "/settings",
-        },
+            icon: <Settings size={22} />,
+            path: "/settings"
+        }
+
     ];
 
+    const handleNavigate = (path) => {
+
+        navigate(path);
+
+        if (
+            window.innerWidth < 1024
+        ) {
+
+            setSidebarOpen(false);
+
+        }
+
+    };
+
+    const handleLogout = async () => {
+
+        await logout();
+
+        navigate("/login");
+
+    };
 
     return (
 
         <aside
             className={`
-                fixed
-                lg:static
-                top-0
-                left-0
-                z-50
 
-                w-[280px]
-                min-h-screen
+            fixed
+            top-0
+            left-0
 
-                border-r
-                border-cyan-500/10
+            h-screen
 
-                bg-slate-950/90
-                backdrop-blur-xl
+            z-50
 
-                p-6
+            overflow-hidden
 
-                transform
-                transition-transform
-                duration-300
+            border-r
+            border-slate-200
 
-                ${
-                    sidebarOpen
-                        ? "translate-x-0"
-                        : "-translate-x-full lg:translate-x-0"
-                }
+            bg-white/80
+
+            backdrop-blur-2xl
+
+            shadow-xl
+
+            transition-all
+            duration-300
+
+            ${collapsed
+                ? "w-[95px]"
+                : "w-[280px]"
+            }
+
+            ${sidebarOpen
+                ? "translate-x-0"
+                : "-translate-x-full lg:translate-x-0"
+            }
+
             `}
         >
 
-            {/* MOBILE CLOSE BUTTON */}
-
-            <div className="flex justify-end lg:hidden mb-6">
-
-                <button
-                    onClick={() =>
-                        setSidebarOpen(false)
-                    }
-
-                    className="
-                        p-3
-
-                        rounded-2xl
-
-                        bg-cyan-500/10
-                        border
-                        border-cyan-500/20
-
-                        text-cyan-400
-                    "
-                >
-
-                    <X size={20} />
-
-                </button>
-
-            </div>
-
-
-            {/* LOGO */}
-
-            <div className="mb-12">
-
-                <p
-                    className="
-                        text-cyan-400
-                        uppercase
-                        tracking-[3px]
-                        text-xs
-                        mb-3
-                    "
-                >
-
-                    Enterprise AI Platform
-
-                </p>
-
-                <h1
-                    className="
-                        text-3xl
-                        font-bold
-                        text-white
-                        leading-tight
-                    "
-                >
-
-                    AI Vendor
-                    <br />
-
-                    Discovery
-
-                </h1>
-
-                <p
-                    className={`
-                        mt-4
-                        text-sm
-                        leading-relaxed
-                        ${theme.colors.textSecondary}
-                    `}
-                >
-
-                    Intelligent AI vendor analytics
-                    and enterprise discovery workflows.
-
-                </p>
-
-            </div>
-
-
-            {/* NAVIGATION */}
-
-            <div className="space-y-3">
-
-                {
-                    menuItems.map((item) => (
-
-                        <button
-                            key={item.label}
-
-                            onClick={() =>
-                                handleNavigation(item.path)
-                            }
-
-                            className={`
-                                w-full
-
-                                flex
-                                items-center
-                                gap-4
-
-                                px-5
-                                py-4
-
-                                rounded-2xl
-
-                                transition-all
-                                duration-300
-
-                                ${
-                                    location.pathname === item.path
-
-                                        ? `
-                                            bg-cyan-500/15
-                                            border
-                                            border-cyan-500/20
-                                            text-white
-                                          `
-
-                                        : `
-                                            text-slate-300
-                                            hover:bg-cyan-500/10
-                                            hover:text-white
-                                          `
-                                }
-                            `}
-                        >
-
-                            {item.icon}
-
-                            <span className="font-medium">
-
-                                {item.label}
-
-                            </span>
-
-                        </button>
-                    ))
-                }
-
-            </div>
-
-
-            {/* ACTIVE WORKSPACE */}
-
             <div
                 className="
-                    mt-10
-
-                    bg-slate-900/70
-                    border
-                    border-cyan-500/10
-
-                    rounded-3xl
-                    p-5
+                h-full
+                flex
+                flex-col
                 "
             >
 
-                <p className="text-slate-400 text-sm mb-2">
+                {/* HEADER */}
 
-                    Active Workspace
-
-                </p>
-
-                <h3 className="text-white font-semibold mb-1">
-
-                    Enterprise Access
-
-                </h3>
-
-                <p className="text-cyan-400 text-sm">
-
-                    AI Intelligence Enabled
-
-                </p>
-
-            </div>
-
-
-            {/* LOGOUT */}
-
-            <div className="mt-8">
-
-                <button
-                    onClick={handleLogout}
-
+                <div
                     className="
+                    px-4
+                    pt-6
+                    pb-5
+
+                    border-b
+                    border-slate-200
+                    "
+                >
+
+                    <div
+                        className="
+                        flex
+                        items-center
+                        justify-between
+                        "
+                    >
+
+                        {
+
+                            !collapsed && (
+
+                                <div
+                                    className="
+                                    flex
+                                    items-center
+                                    gap-3
+                                    "
+                                >
+
+                                    <div
+                                        className="
+                                        h-12
+                                        w-12
+
+                                        rounded-2xl
+
+                                        bg-gradient-to-r
+                                        from-indigo-500
+                                        to-purple-500
+
+                                        flex
+                                        items-center
+                                        justify-center
+
+                                        text-white
+
+                                        shadow-lg
+                                        "
+                                    >
+
+                                        <Sparkles size={20} />
+
+                                    </div>
+
+                                    <div>
+
+                                        <h1
+                                            className="
+                                            font-bold
+                                            text-xl
+                                            text-slate-900
+                                            "
+                                        >
+
+                                            Vendor Hub
+
+                                        </h1>
+
+                                        <p
+                                            className="
+                                            text-xs
+                                            text-slate-400
+                                            "
+                                        >
+
+                                            Enterprise Suite
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            )
+
+                        }
+
+                        <div
+                            className="
+                            flex
+                            gap-2
+                            "
+                        >
+
+                            <button
+
+                                onClick={() =>
+                                    setCollapsed(
+                                        previous =>
+                                            !previous
+                                    )
+                                }
+
+                                className="
+                                hidden
+                                lg:flex
+
+                                h-11
+                                w-11
+
+                                items-center
+                                justify-center
+
+                                rounded-xl
+
+                                border
+                                border-slate-200
+
+                                bg-white
+
+                                shadow-sm
+
+                                hover:bg-slate-50
+                                "
+                            >
+
+                                {
+
+                                    collapsed
+
+                                        ?
+
+                                        <ChevronRight size={18} />
+
+                                        :
+
+                                        <ChevronLeft size={18} />
+
+                                }
+
+                            </button>
+
+                            <button
+
+                                onClick={() =>
+                                    setSidebarOpen(false)
+                                }
+
+                                className="
+                                lg:hidden
+
+                                h-11
+                                w-11
+
+                                flex
+                                items-center
+                                justify-center
+
+                                rounded-xl
+
+                                border
+                                border-slate-200
+
+                                bg-white
+                                "
+                            >
+
+                                <X />
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {/* MENU */}
+
+                <div
+                    className="
+                    flex-1
+
+                    overflow-y-auto
+                    overflow-x-hidden
+
+                    px-4
+                    py-5
+
+                    space-y-2
+                    "
+                >
+
+                    {
+
+                        menuItems.map((item) => {
+
+                            const active =
+
+                                location.pathname === item.path;
+
+                            return (
+
+                                <button
+
+                                    key={item.label}
+
+                                    onClick={() =>
+                                        handleNavigate(
+                                            item.path
+                                        )
+                                    }
+
+                                    className={`
+
+                                    w-full
+
+                                    flex
+                                    items-center
+
+                                    ${collapsed
+                                            ? "justify-center"
+                                            : "gap-4"
+                                        }
+
+                                    px-4
+                                    py-4
+
+                                    rounded-2xl
+
+                                    transition-all
+
+                                    ${active
+
+                                            ?
+
+                                            "bg-indigo-50 text-indigo-600 shadow-sm"
+
+                                            :
+
+                                            "text-slate-600 hover:bg-slate-100 hover:text-indigo-600"
+
+                                        }
+
+                                    `}
+                                >
+
+                                    <div
+                                        className={`
+
+                                        min-w-[42px]
+                                        h-[42px]
+
+                                        flex
+                                        items-center
+                                        justify-center
+
+                                        rounded-xl
+
+                                        ${active
+
+                                                ?
+
+                                                "bg-indigo-100"
+
+                                                :
+
+                                                ""
+
+                                            }
+
+                                        `}
+                                    >
+
+                                        {
+
+                                            item.icon
+
+                                        }
+
+                                    </div>
+
+                                    {
+
+                                        !collapsed && (
+
+                                            <span>
+
+                                                {
+
+                                                    item.label
+
+                                                }
+
+                                            </span>
+
+                                        )
+
+                                    }
+
+                                </button>
+
+                            );
+
+                        })
+
+                    }
+
+                </div>
+
+                {/* FOOTER */}
+
+                <div
+                    className="
+                    p-4
+
+                    border-t
+                    border-slate-200
+                    "
+                >
+
+                    <button
+
+                        onClick={handleLogout}
+
+                        className="
                         w-full
 
                         flex
                         items-center
-                        gap-4
+                        justify-center
+                        gap-3
 
-                        px-5
                         py-4
 
                         rounded-2xl
 
-                        text-red-300
+                        bg-red-50
 
-                        hover:bg-red-500/10
+                        text-red-500
+
+                        hover:bg-red-100
+
+                        font-semibold
 
                         transition-all
-                        duration-300
-                    "
-                >
+                        "
+                    >
 
-                    <LogOut size={20} />
+                        <LogOut size={18} />
 
-                    Logout
+                        {
 
-                </button>
+                            !collapsed &&
+
+                            "Logout"
+
+                        }
+
+                    </button>
+
+                </div>
 
             </div>
 
         </aside>
+
     );
+
 };
 
 export default Sidebar;

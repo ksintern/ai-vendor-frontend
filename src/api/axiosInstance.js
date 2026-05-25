@@ -1,241 +1,387 @@
 import axios from "axios";
 
 
-// ------------------------------------
-// ACCESS TOKEN IN MEMORY
-// ------------------------------------
+// ====================================
+// ACCESS TOKEN MEMORY
+// ====================================
 
 let accessToken = null;
 
 
-// ------------------------------------
+// ====================================
 // REFRESH STATE
-// ------------------------------------
+// ====================================
 
 let isRefreshing = false;
 
 let failedQueue = [];
 
 
-// ------------------------------------
+// ====================================
 // PROCESS QUEUE
-// ------------------------------------
+// ====================================
 
 const processQueue = (
-    error,
-    token = null
-) => {
 
-    failedQueue.forEach((promise) => {
+error,
+token = null
 
-        if (error) {
+)=>{
 
-            promise.reject(error);
+failedQueue.forEach(
 
-        } else {
+promise=>{
 
-            promise.resolve(token);
-        }
-    });
+if(error){
 
-    failedQueue = [];
+promise.reject(error);
+
+}
+
+else{
+
+promise.resolve(token);
+
+}
+
+}
+
+);
+
+failedQueue=[];
+
 };
 
 
-// ------------------------------------
-// SET ACCESS TOKEN
-// ------------------------------------
+// ====================================
+// TOKEN HELPERS
+// ====================================
 
-export const setAccessToken = (token) => {
+export const setAccessToken=(
 
-    accessToken = token;
+token
+
+)=>{
+
+accessToken=token;
+
 };
 
 
-// ------------------------------------
-// CLEAR ACCESS TOKEN
-// ------------------------------------
+export const clearAccessToken=()=>{
 
-export const clearAccessToken = () => {
+accessToken=null;
 
-    accessToken = null;
 };
 
 
-// ------------------------------------
+// ====================================
 // AXIOS INSTANCE
-// ------------------------------------
+// ====================================
 
-const axiosInstance = axios.create({
+const axiosInstance=
 
-    baseURL: import.meta.env.VITE_API_BASE_URL,
+axios.create({
 
-    withCredentials: true
+baseURL:
+
+import.meta.env
+
+.VITE_API_BASE_URL,
+
+withCredentials:true,
+
+timeout:15000
+
 });
 
 
-// ------------------------------------
+// ====================================
 // REQUEST INTERCEPTOR
-// ------------------------------------
+// ====================================
 
 axiosInstance.interceptors.request.use(
 
-    (config) => {
+config=>{
 
-        if (accessToken) {
+if(accessToken){
 
-            config.headers.Authorization =
+config.headers.Authorization=
 
-                `Bearer ${accessToken}`;
-        }
+`Bearer ${accessToken}`;
 
-        return config;
-    },
+}
 
-    (error) => {
+return config;
 
-        return Promise.reject(error);
-    }
+},
+
+error=>Promise.reject(error)
+
 );
 
 
-// ------------------------------------
+// ====================================
 // RESPONSE INTERCEPTOR
-// ------------------------------------
+// ====================================
 
 axiosInstance.interceptors.response.use(
 
-    (response) => response,
+response=>response,
 
-    async (error) => {
+async error=>{
 
-        const originalRequest = error.config;
+const originalRequest=
 
-        // ------------------------------------
-        // PREVENT REFRESH LOOP
-        // ------------------------------------
+error.config;
 
-        if (
 
-            originalRequest?.url?.includes(
-                "/auth/refresh"
-            )
-        ) {
+// NETWORK
 
-            return Promise.reject(error);
-        }
+if(
 
-        // ------------------------------------
-        // HANDLE 401
-        // ------------------------------------
+!error.response
 
-        if (
+){
 
-            error.response?.status === 401 &&
+return Promise.reject(
 
-            !originalRequest._retry
-        ) {
+"Network error. Please check your internet connection."
 
-            // ------------------------------------
-            // ALREADY REFRESHING
-            // ------------------------------------
+);
 
-            if (isRefreshing) {
+}
 
-                return new Promise(
 
-                    (resolve, reject) => {
+const status=
 
-                        failedQueue.push({
+error.response.status;
 
-                            resolve,
 
-                            reject
-                        });
-                    }
+// LOGIN FAILURE
 
-                ).then((token) => {
+if(
 
-                    originalRequest.headers.Authorization =
+originalRequest?.url?.includes(
 
-                        `Bearer ${token}`;
+"/auth/login"
 
-                    return axiosInstance(
-                        originalRequest
-                    );
-                });
-            }
+)
 
-            originalRequest._retry = true;
+){
 
-            isRefreshing = true;
+return Promise.reject(error);
 
-            try {
+}
 
-                // ------------------------------------
-                // REQUEST NEW ACCESS TOKEN
-                // ------------------------------------
 
-                const response = await axios.post(
+// REFRESH FAILED
 
-                    `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+if(
 
-                    {},
+originalRequest?.url?.includes(
 
-                    {
-                        withCredentials: true,
-                    }
-                );
+"/auth/refresh"
 
-                const newAccessToken =
-                    response.data.access_token;
+)
 
-                // ------------------------------------
-                // STORE IN MEMORY
-                // ------------------------------------
+){
 
-                accessToken = newAccessToken;
+clearAccessToken();
 
-                processQueue(
-                    null,
-                    newAccessToken
-                );
+return Promise.reject(
 
-                // ------------------------------------
-                // RETRY ORIGINAL REQUEST
-                // ------------------------------------
+"Session expired"
 
-                originalRequest.headers.Authorization =
+);
 
-                    `Bearer ${newAccessToken}`;
+}
 
-                return axiosInstance(
-                    originalRequest
-                );
 
-            } catch (refreshError) {
+// HANDLE 401
 
-                processQueue(
-                    refreshError,
-                    null
-                );
+if(
 
-                accessToken = null;
+status===401
 
-                window.location.href = "/login";
+&&
 
-                return Promise.reject(
-                    refreshError
-                );
+!originalRequest._retry
 
-            } finally {
+){
 
-                isRefreshing = false;
-            }
-        }
+if(
 
-        return Promise.reject(error);
-    }
+isRefreshing
+
+){
+
+return new Promise(
+
+(
+
+resolve,
+reject
+
+)=>{
+
+failedQueue.push({
+
+resolve,
+reject
+
+});
+
+}
+
+)
+
+.then(
+
+token=>{
+
+originalRequest.headers.Authorization=
+
+`Bearer ${token}`;
+
+return axiosInstance(
+
+originalRequest
+
+);
+
+}
+
+);
+
+}
+
+
+originalRequest._retry=true;
+
+isRefreshing=true;
+
+
+try{
+
+const refresh=
+
+await axios.post(
+
+`${
+
+import.meta.env
+
+.VITE_API_BASE_URL
+
+}/auth/refresh`,
+
+{},
+
+{
+
+withCredentials:true
+
+}
+
+);
+
+
+const newToken=
+
+refresh.data?.data?.access_token||
+
+refresh.data?.access_token;
+
+
+if(
+
+!newToken
+
+){
+
+throw Error();
+
+}
+
+
+setAccessToken(
+
+newToken
+
+);
+
+
+processQueue(
+
+null,
+
+newToken
+
+);
+
+
+originalRequest.headers.Authorization=
+
+`Bearer ${newToken}`;
+
+
+return axiosInstance(
+
+originalRequest
+
+);
+
+}
+
+catch(refreshError){
+
+processQueue(
+
+refreshError,
+
+null
+
+);
+
+clearAccessToken();
+
+return Promise.reject(
+
+"Session expired"
+
+);
+
+}
+
+finally{
+
+isRefreshing=false;
+
+}
+
+}
+
+
+const apiMessage=
+
+error.response?.data?.message||
+
+error.response?.data?.detail||
+
+error.response?.data?.error?.details?.[0]?.message||
+
+"Something went wrong";
+
+
+return Promise.reject(
+
+apiMessage
+
+);
+
+}
+
 );
 
 

@@ -1,231 +1,675 @@
-import MainLayout from "../../components/layouts/MainLayout/MainLayout";
+import {
+useState,
+useEffect,
+useMemo
+} from "react";
 
-import useAuth from "../../hooks/useAuth";
+import MainLayout
+from "../../components/layouts/MainLayout/MainLayout";
 
-import { useTheme } from "../../context/ThemeContext";
+import axiosInstance
+from "../../api/axiosInstance";
 
+import useAuth
+from "../../hooks/useAuth";
 
-const DashboardPage = () => {
+import VendorAnalytics
+from "../../components/vendor/VendorAnalytics/VendorAnalytics";
 
-    const {
-        user
-    } = useAuth();
+import Skeleton
+from "../../components/common/Skeleton/Skeleton";
 
-    const theme = useTheme();
+import Card
+from "../../components/common/Card/Card";
 
+import PageHeader
+from "../../components/common/PageHeader/PageHeader";
 
-    const stats = [
+import KpiCard
+from "../../components/common/KpiCard/KpiCard";
 
-        {
-            title: "Vendors Analyzed",
-            value: "128",
-            description: "AI vendors benchmarked"
-        },
+import {
 
-        {
-            title: "AI Recommendations",
-            value: "42",
-            description: "Smart recommendations generated"
-        },
+Bell,
+Eye,
+Users,
+TrendingUp,
+IndianRupee
 
-        {
-            title: "Search Sessions",
-            value: "318",
-            description: "Vendor discovery searches"
-        },
-
-        {
-            title: "Saved Vendors",
-            value: "24",
-            description: "Bookmarked vendor profiles"
-        },
-    ];
+} from "lucide-react";
 
 
-    return (
+const DashboardPage=()=>{
 
-        <MainLayout>
+const{
+user
+}=useAuth();
 
-            {/* PAGE HEADER */}
+const[
+loading,
+setLoading
+]=useState(true);
 
-            <div className="mb-10">
+const[
+vendorName,
+setVendorName
+]=useState("");
 
-                <p
-                    className="
-                        text-cyan-400
-                        uppercase
-                        tracking-[3px]
-                        text-sm
-                        mb-3
-                    "
-                >
+const[
+dashboard,
+setDashboard
+]=useState({
 
-                    Vendor Intelligence Dashboard
+views:0,
 
-                </p>
+followers:0,
 
-                <h1
-                    className="
-                        text-5xl
-                        font-bold
-                        text-white
-                        mb-4
-                    "
-                >
+engagement:0,
 
-                    Welcome back,
-                    {" "}
-                    {user?.full_name}
+growth:0,
 
-                </h1>
+avgPricing:0,
 
-                <p
-                    className={`
-                        max-w-3xl
-                        ${theme.colors.textSecondary}
-                    `}
-                >
+analytics:[],
 
-                    Monitor AI vendor analytics,
-                    intelligent recommendations,
-                    procurement insights,
-                    and enterprise discovery workflows
-                    through your centralized AI platform.
+notifications:[]
 
-                </p>
-
-            </div>
+});
 
 
-            {/* STATS CARDS */}
+const greeting=
 
-            <div
-                className="
-                    grid
-                    grid-cols-1
-                    md:grid-cols-2
-                    xl:grid-cols-4
-                    gap-6
-                "
-            >
+useMemo(()=>{
 
-                {
-                    stats.map((item) => (
+const hour=
 
-                        <div
-                            key={item.title}
+new Date()
 
-                            className="
-                                bg-slate-900/60
-                                backdrop-blur-xl
+.getHours();
 
-                                border
-                                border-cyan-500/10
+if(
 
-                                rounded-3xl
-                                p-6
+hour<12
 
-                                shadow-2xl
-                            "
-                        >
+){
 
-                            <p
-                                className="
-                                    text-slate-400
-                                    text-sm
-                                    mb-3
-                                "
-                            >
+return "Good Morning";
 
-                                {item.title}
+}
 
-                            </p>
+if(
 
-                            <h2
-                                className="
-                                    text-4xl
-                                    font-bold
-                                    text-white
-                                    mb-3
-                                "
-                            >
+hour<18
 
-                                {item.value}
+){
 
-                            </h2>
+return "Good Afternoon";
 
-                            <p
-                                className="
-                                    text-cyan-400
-                                    text-sm
-                                "
-                            >
+}
 
-                                {item.description}
+return "Good Evening";
 
-                            </p>
-
-                        </div>
-                    ))
-                }
-
-            </div>
+},[]);
 
 
-            {/* AI INSIGHTS SECTION */}
+useEffect(()=>{
 
-            <div
-                className="
-                    mt-10
+fetchDashboard();
 
-                    bg-slate-900/60
-                    backdrop-blur-xl
+},[]);
 
-                    border
-                    border-cyan-500/10
 
-                    rounded-3xl
-                    p-8
+const fetchDashboard=
 
-                    shadow-2xl
-                "
-            >
+async()=>{
 
-                <h2
-                    className="
-                        text-3xl
-                        font-bold
-                        text-white
-                        mb-4
-                    "
-                >
+try{
 
-                    AI Vendor Intelligence
+setLoading(true);
 
-                </h2>
+const[
 
-                <p
-                    className="
-                        text-slate-400
-                        leading-relaxed
-                        max-w-4xl
-                    "
-                >
+profileResponse,
 
-                    Your platform is configured with
-                    enterprise-grade authentication,
-                    protected routing,
-                    role-based access control,
-                    scalable UI architecture,
-                    and intelligent vendor discovery foundations
-                    ready for AI-powered integrations.
+pricingResponse,
 
-                </p>
+analyticsResponse,
 
-            </div>
+notificationResponse
 
-        </MainLayout>
-    );
+]=await Promise.all([
+
+axiosInstance.get(
+
+"/vendors/profile"
+
+),
+
+axiosInstance.get(
+
+"/vendors/profile/pricing"
+
+).catch(
+
+()=>({
+
+data:{
+
+avg_pricing:0
+
+}
+
+})
+
+),
+
+axiosInstance.get(
+
+"/vendors/profile/analytics"
+
+).catch(
+
+()=>({
+
+data:{
+
+analytics:[],
+
+growth:0,
+
+followers:0,
+
+views:0,
+
+engagement:0
+
+}
+
+})
+
+),
+
+axiosInstance.get(
+
+"/vendors/notifications"
+
+).catch(
+
+()=>({
+
+data:{
+
+notifications:[]
+
+}
+
+})
+
+)
+
+]);
+
+const vendor=
+
+profileResponse.data?.vendor||
+
+profileResponse.data?.data?.vendor||
+
+{};
+
+const analytics=
+
+analyticsResponse.data||
+
+{};
+
+const pricing=
+
+pricingResponse.data||
+
+{};
+
+const notificationData=
+
+notificationResponse.data?.notifications||
+
+[];
+
+const views=
+
+analytics.views||
+
+0;
+
+const followers=
+
+analytics.followers||
+
+0;
+
+const engagement=
+
+analytics.engagement||
+
+0;
+
+const growth=
+
+analytics.growth||
+
+0;
+
+const avgPricing=
+
+pricing.avg_pricing||
+
+(
+
+vendor.price_min&&
+
+vendor.price_max
+
+?
+
+Math.floor(
+
+(
+
+vendor.price_min+
+
+vendor.price_max
+
+)/2
+
+)
+
+:0
+
+);
+
+setVendorName(
+
+vendor.name||
+
+user?.full_name||
+
+"Vendor"
+
+);
+
+setDashboard({
+
+views,
+
+followers,
+
+engagement,
+
+growth,
+
+avgPricing,
+
+analytics:
+
+analytics.analytics||
+
+[],
+
+notifications:
+
+notificationData
+
+});
+
+}
+
+catch(error){
+
+console.log(
+
+"Dashboard failed",
+
+error
+
+);
+
+}
+
+finally{
+
+setLoading(false);
+
+}
+
+};
+
+
+const stats=[
+
+{
+
+title:"Views",
+
+value:
+
+dashboard.views,
+
+icon:<Eye/>,
+
+color:
+
+"bg-blue-100"
+
+},
+
+{
+
+title:"Followers",
+
+value:
+
+dashboard.followers,
+
+icon:<Users/>,
+
+color:
+
+"bg-violet-100"
+
+},
+
+{
+
+title:"Engagement",
+
+value:
+
+`${dashboard.engagement}%`,
+
+icon:<TrendingUp/>,
+
+color:
+
+"bg-emerald-100"
+
+},
+
+{
+
+title:"Growth",
+
+value:
+
+`${dashboard.growth}%`,
+
+icon:<TrendingUp/>,
+
+color:
+
+"bg-green-100"
+
+},
+
+{
+
+title:"Pricing",
+
+value:
+
+dashboard.avgPricing
+
+?
+
+`₹${dashboard.avgPricing}`
+
+:
+
+"—",
+
+icon:<IndianRupee/>,
+
+color:
+
+"bg-orange-100"
+
+}
+
+];
+
+
+return(
+
+<MainLayout>
+
+<div
+className="space-y-8"
+>
+
+<PageHeader
+
+title={
+
+vendorName
+
+?
+
+`${greeting}, ${vendorName}`
+
+:
+
+greeting
+
+}
+
+subtitle=
+
+"Monitor vendor analytics growth and business intelligence."
+
+/>
+
+
+<div
+className="grid xl:grid-cols-5 md:grid-cols-2 gap-6"
+>
+
+{
+
+stats.map(
+
+card=>(
+
+<KpiCard
+
+key={
+
+card.title
+
+}
+
+title={
+
+card.title
+
+}
+
+value={
+
+loading
+
+?
+
+<Skeleton/>
+
+:
+
+card.value
+
+}
+
+icon={
+
+card.icon
+
+}
+
+color={
+
+card.color
+
+}
+
+/>
+
+)
+
+)
+
+}
+
+</div>
+
+
+<div
+className="grid lg:grid-cols-3 gap-6"
+>
+
+<div
+className="lg:col-span-2"
+>
+
+<VendorAnalytics
+
+analytics={
+
+dashboard.analytics
+
+}
+
+/>
+
+</div>
+
+
+<Card>
+
+<div
+className=
+
+"flex gap-2 mb-6 font-semibold"
+>
+
+<Bell/>
+
+Notifications
+
+</div>
+
+{
+
+loading
+
+?
+
+<Skeleton/>
+
+:
+
+dashboard.notifications.length
+
+?
+
+dashboard.notifications.map(
+
+item=>(
+
+<div
+
+key={
+
+item.notification_id
+
+}
+
+className=
+
+"py-4 border-b"
+
+>
+
+<p
+className="font-semibold"
+>
+
+{
+
+item.title
+
+}
+
+</p>
+
+<p
+className="text-slate-500 text-sm"
+>
+
+{
+
+item.message
+
+}
+
+</p>
+
+<p
+className="text-xs text-slate-400 mt-1"
+>
+
+{
+
+new Date(
+
+item.created_at
+
+)
+
+.toLocaleString()
+
+}
+
+</p>
+
+</div>
+
+)
+
+)
+
+:
+
+(
+
+<p
+className="text-slate-500"
+>
+
+No notifications
+
+</p>
+
+)
+
+}
+
+</Card>
+
+</div>
+
+</div>
+
+</MainLayout>
+
+);
+
 };
 
 export default DashboardPage;

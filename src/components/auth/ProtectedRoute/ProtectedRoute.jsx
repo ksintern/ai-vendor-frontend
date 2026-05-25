@@ -1,89 +1,218 @@
-import { Navigate } from "react-router-dom";
+import {
+
+Navigate
+
+} from "react-router-dom";
 
 import useAuth from "../../../hooks/useAuth";
 
 
-const ProtectedRoute = ({
+const ProtectedRoute=({
 
-    children,
+children,
 
-    allowedRoles = []
-}) => {
+allowedRoles=[]
 
-    const {
+})=>{
 
-        isAuthenticated,
+const{
 
-        loading,
+isAuthenticated,
 
-        role
+loading,
 
-    } = useAuth();
+role
 
-
-    // -----------------------------
-    // AUTH VALIDATION LOADING
-    // -----------------------------
-
-    if (loading) {
-
-        return (
-
-            <div className="flex items-center justify-center min-h-screen">
-
-                <h1 className="text-2xl font-semibold">
-
-                    Loading...
-
-                </h1>
-
-            </div>
-        );
-    }
+}=useAuth();
 
 
-    // -----------------------------
-    // UNAUTHENTICATED USER
-    // -----------------------------
+// =====================================
+// SESSION VALIDATION LOADER
+// =====================================
 
-    if (!isAuthenticated) {
+if(loading){
 
-        return (
+return(
 
-            <Navigate
-                to="/login"
-                replace
-            />
-        );
-    }
+<div
+
+className="
+
+min-h-screen
+
+flex
+
+items-center
+
+justify-center
+
+bg-[#F8FAFF]
+
+"
+
+>
+
+<div
+
+className="
+
+glass
+
+rounded-[24px]
+
+px-10
+
+py-8
+
+text-center
+
+"
+
+>
+
+<div
+
+className="
+
+w-10
+
+h-10
+
+border-4
+
+border-indigo-500
+
+border-t-transparent
+
+rounded-full
+
+animate-spin
+
+mx-auto
+
+mb-4
+
+"
+
+/>
+
+<h2
+
+className="
+
+text-lg
+
+font-semibold
+
+text-slate-700
+
+"
+
+>
+
+Validating session...
+
+</h2>
+
+<p
+
+className="
+
+text-slate-500
+
+text-sm
+
+mt-2
+
+"
+
+>
+
+Restoring authentication
+
+</p>
+
+</div>
+
+</div>
+
+);
+
+}
 
 
-    // -----------------------------
-    // ROLE AUTHORIZATION CHECK
-    // -----------------------------
+// =====================================
+// NOT LOGGED IN
+// =====================================
 
-    if (
+if(
 
-        allowedRoles.length > 0 &&
+!isAuthenticated
 
-        !allowedRoles.includes(role)
-    ) {
+){
 
-        return (
+return(
 
-            <Navigate
-                to="/unauthorized"
-                replace
-            />
-        );
-    }
+<Navigate
+
+to="/login"
+
+replace
+
+/>
+
+);
+
+}
 
 
-    // -----------------------------
-    // AUTHORIZED USER
-    // -----------------------------
+// =====================================
+// ROLE PROTECTION
+// =====================================
 
-    return children;
+if(
+
+allowedRoles.length>0
+
+&&
+
+(
+
+!role
+
+||
+
+!allowedRoles.includes(
+
+role
+
+)
+
+)
+
+){
+
+return(
+
+<Navigate
+
+to="/unauthorized"
+
+replace
+
+/>
+
+);
+
+}
+
+
+// =====================================
+// AUTHORIZED
+// =====================================
+
+return children;
+
 };
 
 export default ProtectedRoute;

@@ -1,739 +1,881 @@
 import { useState } from "react";
 
-import { useNavigate, Link } from "react-router-dom";
+import {
+Eye,
+EyeOff,
+Shield,
+User,
+Building2
+} from "lucide-react";
 
 import {
+Link,
+useNavigate
+} from "react-router-dom";
 
-    registerService,
-
-    checkUsernameService,
-
-    checkEmailService
-
+import {
+registerService,
+checkUsernameService,
+checkEmailService
 } from "../../../services/authService";
 
-import AuthLayout from "../../layouts/AuthLayout/AuthLayout";
-
 import Input from "../../common/Input/Input";
-
 import Button from "../../common/Button/Button";
 
+import i1 from "../../../assets/login/i1.png";
 
-const RegisterForm = () => {
+const RegisterForm=()=>{
 
-    const navigate = useNavigate();
+const navigate=useNavigate();
 
+const[loading,setLoading]=useState(false);
 
-    const [formData, setFormData] = useState({
+const[showPassword,setShowPassword]=useState(false);
 
-        username: "",
-        full_name: "",
-        email: "",
-        business_email: "",
-        phone_number: "",
-        role: "user",
-        password: "",
-        confirm_password: "",
-    });
+const[showConfirm,setShowConfirm]=useState(false);
 
-    const [errors, setErrors] = useState({});
+const[success,setSuccess]=useState(false);
 
-    const [message, setMessage] = useState("");
+const[message,setMessage]=useState("");
 
-    const [loading, setLoading] = useState(false);
+const[errors,setErrors]=useState({});
 
+const[formData,setFormData]=useState({
 
-    // --------------------------------
-    // FORM VALIDATION STATE
-    // --------------------------------
+username:"",
+full_name:"",
+email:"",
+business_email:"",
+phone_number:"",
+role:"user",
+password:"",
+confirm_password:""
 
-    const isFormValid =
+});
 
-        formData.username.length >= 3 &&
+const validateField=(name,value)=>{
 
-        formData.full_name.length >= 2 &&
+let error="";
 
-        formData.email &&
+switch(name){
 
-        (
-            formData.role !== "vendor" ||
+case "username":
 
-            (
-                formData.business_email &&
+if(
+value &&
+!/^[a-zA-Z0-9._-]+$/.test(value)
+){
 
-                formData.business_email !== formData.email
-            )
-        ) &&
+error="Only letters numbers . _ - allowed";
 
-        formData.password &&
+}
 
-        formData.confirm_password &&
+else if(
+value &&
+value.length<3
+){
 
-        formData.password === formData.confirm_password &&
+error="Minimum 3 characters";
 
-        !Object.values(errors).some(Boolean);
+}
 
+break;
 
-    // -----------------------------
-    // HANDLE INPUT CHANGE
-    // -----------------------------
+case "full_name":
 
-    const handleChange = async (e) => {
+if(
+value &&
+!/^[A-Za-z ]+$/.test(value)
+){
 
-        const { name, value } = e.target;
+error="Only letters allowed";
 
-        let sanitizedValue = value;
+}
 
-        let errorMessage = "";
+break;
 
+case "email":
 
-        // USERNAME VALIDATION
+case "business_email":
 
-        if (name === "username") {
+if(
+value &&
+!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+){
 
-            sanitizedValue = value.replace(
-                /[^a-zA-Z0-9._-]/g,
-                ""
-            );
+error="Invalid email";
 
-            if (sanitizedValue.length < 3) {
+}
 
-                errorMessage =
-                    "Username must contain at least 3 characters";
-            }
+break;
 
-            // REAL-TIME USERNAME CHECK
+case "phone_number":
 
-            else {
+if(
+value &&
+!/^[0-9]*$/.test(value)
+){
 
-                try {
+error="Digits only";
 
-                    const response =
-                        await checkUsernameService(
-                            sanitizedValue
-                        );
+}
 
-                    if (!response.available) {
+else if(
+value.length>10
+){
 
-                        errorMessage =
-                            "Username already taken";
-                    }
+error="Maximum 10 digits";
 
-                } catch {
+}
 
-                    errorMessage =
-                        "Unable to validate username";
-                }
-            }
-        }
+break;
 
+case "password":
 
-        // FULL NAME VALIDATION
+if(
+value &&
+value.length<8
+){
 
-        if (name === "full_name") {
+error="Minimum 8 characters";
 
-            sanitizedValue = value.replace(
-                /[^a-zA-Z\s]/g,
-                ""
-            );
+}
 
-            if (
-                sanitizedValue &&
-                sanitizedValue.length < 2
-            ) {
+else if(
+value &&
+!/[A-Z]/.test(value)
+){
 
-                errorMessage =
-                    "Full name must contain at least 2 characters";
-            }
-        }
+error="Need uppercase";
 
+}
 
-        // EMAIL VALIDATION
+else if(
+value &&
+!/[a-z]/.test(value)
+){
 
-        if (name === "email") {
+error="Need lowercase";
 
-            const emailRegex =
-                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+}
 
-            if (
-                value &&
-                !emailRegex.test(value)
-            ) {
+else if(
+value &&
+!/[0-9]/.test(value)
+){
 
-                errorMessage =
-                    "Invalid email format";
-            }
+error="Need number";
 
-            else {
+}
 
-                try {
+else if(
+value &&
+!/[\W_]/.test(value)
+){
 
-                    const response =
-                        await checkEmailService(
-                            value
-                        );
+error="Need special symbol";
 
-                    if (!response.available) {
+}
 
-                        errorMessage =
-                            "Email already registered";
-                    }
+break;
 
-                } catch {
+case "confirm_password":
 
-                    errorMessage =
-                        "Unable to validate email";
-                }
-            }
+if(
+value &&
+value!==formData.password
+){
 
-            // EMAIL + BUSINESS EMAIL MATCH
+error="Passwords do not match";
 
-            if (
-                formData.role === "vendor" &&
-                value === formData.business_email
-            ) {
+}
 
-                errorMessage =
-                    "Personal email and business email cannot be the same";
-            }
-        }
+break;
 
+default:
 
-        // BUSINESS EMAIL VALIDATION
+break;
 
-        if (name === "business_email") {
+}
 
-            if (
-                value &&
-                value === formData.email
-            ) {
+return error;
 
-                errorMessage =
-                    "Personal email and business email cannot be the same";
-            }
-        }
+};
 
+const handleChange=async(e)=>{
 
-        // PHONE NUMBER VALIDATION
+const{
+name,
+value
+}=e.target;
 
-        if (name === "phone_number") {
+let updated=value;
 
-            sanitizedValue = value
-                .replace(/\D/g, "")
-                .slice(0, 10);
+if(name==="phone_number"){
 
-            if (
-                sanitizedValue &&
-                sanitizedValue.length < 10
-            ) {
+updated=
 
-                errorMessage =
-                    "Phone number must contain 10 digits";
-            }
-        }
+value.replace(
 
+/[^0-9]/g,
 
-        // PASSWORD VALIDATION
+""
 
-        if (name === "password") {
+);
 
-            const passwordRegex =
-                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/;
+}
 
-            if (
-                value &&
-                !passwordRegex.test(value)
-            ) {
+if(name==="full_name"){
 
-                errorMessage =
-                    "Password must contain uppercase, lowercase, number, and special character";
-            }
-        }
+updated=
 
+value.replace(
 
-        // CONFIRM PASSWORD VALIDATION
+/[^A-Za-z ]/g,
 
-        if (name === "confirm_password") {
+""
 
-            if (
-                value &&
-                value !== formData.password
-            ) {
+);
 
-                errorMessage =
-                    "Passwords do not match";
-            }
-        }
+}
 
+setFormData(prev=>({
 
-        setErrors((prev) => ({
+...prev,
 
-            ...prev,
+[name]:updated
 
-            [name]: errorMessage,
-        }));
+}));
 
+let error=
 
-        setFormData((prev) => ({
+validateField(
 
-            ...prev,
+name,
 
-            [name]: sanitizedValue,
-        }));
-    };
+updated
 
+);
 
-    // -----------------------------
-    // HANDLE SUBMIT
-    // -----------------------------
+if(
 
-    const handleSubmit = async (e) => {
+name==="username"&&
 
-        e.preventDefault();
+updated.length>=3&&
 
+!error
 
-        const hasErrors = Object.values(errors)
-            .some((error) => error);
+){
 
-        if (hasErrors) {
+try{
 
-            return;
-        }
+const response=
 
-        try {
+await checkUsernameService(updated);
 
-            setLoading(true);
+if(!response.available){
 
-            setMessage("");
+error="Username already exists";
 
-            setErrors({});
+}
 
-            const payload = {
+}catch{}
 
-                ...formData,
+}
 
-                business_email:
+if(
 
-                    formData.role === "vendor"
+name==="email"&&
 
-                        ? formData.business_email
+updated&&
 
-                        : null
-            };
+!error
 
-            const response = await registerService(
-                payload
-            );
+){
 
-            setMessage(response.message);
+try{
 
-            setTimeout(() => {
+const response=
 
-                navigate("/login");
+await checkEmailService(updated);
 
-            }, 1500);
+if(!response.available){
 
-        } catch (error) {
+error="Email already registered";
 
-            const backendError =
-                error?.response?.data?.detail;
+}
 
-            // USERNAME EXISTS
+}catch{}
 
-            if (
-                typeof backendError === "string" &&
-                backendError.toLowerCase().includes("username")
-            ) {
+}
 
-                setErrors((prev) => ({
+setErrors(prev=>({
 
-                    ...prev,
+...prev,
 
-                    username: backendError
-                }));
+[name]:error
 
-            }
+}));
 
-            // EMAIL EXISTS
+};
 
-            else if (
-                typeof backendError === "string" &&
-                backendError.toLowerCase().includes("email")
-            ) {
+const handleSubmit=async(e)=>{
 
-                setErrors((prev) => ({
+e.preventDefault();
 
-                    ...prev,
+if(
 
-                    email: backendError
-                }));
+Object.values(errors)
 
-            }
+.some(Boolean)
 
-            // BUSINESS EMAIL ISSUE
+){
 
-            else if (
-                typeof backendError === "string" &&
-                backendError.toLowerCase().includes("business")
-            ) {
+return;
 
-                setErrors((prev) => ({
+}
 
-                    ...prev,
+try{
 
-                    business_email: backendError
-                }));
+setLoading(true);
 
-            }
+setMessage("");
 
-            else {
+const response=
 
-                setMessage(
+await registerService(formData);
 
-                    backendError ||
+setSuccess(true);
 
-                    "Registration failed"
-                );
-            }
+setMessage(response.message);
 
-        } finally {
+setTimeout(()=>{
 
-            setLoading(false);
-        }
-    };
+navigate("/login");
 
+},1500);
 
-    return (
+}
 
-        <AuthLayout
-            subtitle="
-                Create your enterprise AI vendor intelligence account
-            "
-        >
+catch(error){
 
-            <form
-                onSubmit={handleSubmit}
-                className="space-y-5"
-            >
+setSuccess(false);
 
-                {/* ROLE SELECTION */}
+setMessage(
 
-                <div>
+error?.response?.data?.detail||
 
-                    <select
-                        name="role"
-                        value={formData.role}
-                        onChange={handleChange}
-                        className="
-                            w-full
-                            rounded-xl
-                            bg-slate-900
-                            border
-                            border-slate-700
-                            px-4
-                            py-3
-                            text-white
-                            focus:outline-none
-                            focus:border-cyan-500
-                        "
-                    >
+"Registration failed"
 
-                        <option value="user">
+);
 
-                            Register as User
+}
 
-                        </option>
+finally{
 
-                        <option value="vendor">
+setLoading(false);
 
-                            Register as Vendor
+}
 
-                        </option>
+};
 
-                    </select>
+return(
 
-                </div>
+<div
 
+className="
 
-                {/* USERNAME */}
+min-h-screen
 
-                <div>
+grid
 
-                    <Input
-                        type="text"
-                        name="username"
-                        placeholder="Username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        required
-                    />
+lg:grid-cols-[1.15fr_0.85fr]
 
-                    {
-                        errors.username && (
+bg-[#F5F7FD]
 
-                            <p className="mt-2 text-sm text-red-400">
+"
 
-                                {errors.username}
+>
 
-                            </p>
-                        )
-                    }
+{/* LEFT */}
 
-                </div>
+<div
 
+className="
 
-                {/* FULL NAME */}
+hidden
 
-                <div>
+lg:flex
 
-                    <Input
-                        type="text"
-                        name="full_name"
-                        placeholder="Full Name"
-                        value={formData.full_name}
-                        onChange={handleChange}
-                        required
-                    />
+relative
 
-                    {
-                        errors.full_name && (
+overflow-hidden
 
-                            <p className="mt-2 text-sm text-red-400">
+"
 
-                                {errors.full_name}
+>
 
-                            </p>
-                        )
-                    }
+<img
 
-                </div>
+src={i1}
 
+alt="AI"
 
-                {/* EMAIL */}
+className="
 
-                <div>
+absolute
 
-                    <Input
-                        type="email"
-                        name="email"
-                        placeholder="Email Address"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                    />
+inset-0
 
-                    {
-                        errors.email && (
+w-full
 
-                            <p className="mt-2 text-sm text-red-400">
+h-full
 
-                                {errors.email}
+object-cover
 
-                            </p>
-                        )
-                    }
+"
 
-                </div>
+/>
 
+<div
 
-                {/* BUSINESS EMAIL */}
+className="
 
-                {
-                    formData.role === "vendor" && (
+absolute
 
-                        <div>
+inset-0
 
-                            <Input
-                                type="email"
-                                name="business_email"
-                                placeholder="Business Email Address"
-                                value={formData.business_email}
-                                onChange={handleChange}
-                                required
-                            />
+bg-gradient-to-r
 
-                            {
-                                errors.business_email && (
+from-[#020617]/85
 
-                                    <p className="mt-2 text-sm text-red-400">
+via-[#111827]/70
 
-                                        {errors.business_email}
+to-[#1E1B4B]/70
 
-                                    </p>
-                                )
-                            }
+"
 
-                        </div>
-                    )
-                }
+/>
 
+<div
 
-                {/* PHONE NUMBER */}
+className="
 
-                <div>
+relative
 
-                    <Input
-                        type="text"
-                        name="phone_number"
-                        placeholder="Phone Number"
-                        value={formData.phone_number}
-                        onChange={handleChange}
-                    />
+z-20
 
-                    {
-                        errors.phone_number && (
+px-16
 
-                            <p className="mt-2 text-sm text-red-400">
+py-16
 
-                                {errors.phone_number}
+flex
 
-                            </p>
-                        )
-                    }
+flex-col
 
-                </div>
+justify-center
 
+"
 
-                {/* PASSWORD */}
+>
 
-                <div>
+<p
 
-                    <Input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                    />
+className="
 
-                    {
-                        errors.password && (
+uppercase
 
-                            <p className="mt-2 text-sm text-red-400">
+tracking-[6px]
 
-                                {errors.password}
+text-indigo-200
 
-                            </p>
-                        )
-                    }
+font-bold
 
-                </div>
+mb-6
 
+"
 
-                {/* CONFIRM PASSWORD */}
+>
 
-                <div>
+Enterprise Intelligence
 
-                    <Input
-                        type="password"
-                        name="confirm_password"
-                        placeholder="Confirm Password"
-                        value={formData.confirm_password}
-                        onChange={handleChange}
-                        required
-                    />
+</p>
 
-                    {
-                        errors.confirm_password && (
+<h1
 
-                            <p className="mt-2 text-sm text-red-400">
+className="
 
-                                {errors.confirm_password}
+text-[64px]
 
-                            </p>
-                        )
-                    }
+font-black
 
-                </div>
+leading-[68px]
 
+mb-8
 
-                {/* API MESSAGE */}
+"
 
-                {
-                    message && (
+>
 
-                        <div
-                            className={`
-                                text-sm
-                                rounded-2xl
-                                p-4
-                                border
+<span className="text-white">
 
-                                ${
-                                    message.includes("success")
+Vendor
 
-                                        ? `
-                                            bg-cyan-500/10
-                                            border-cyan-500/20
-                                            text-cyan-300
-                                          `
+</span>
 
-                                        : `
-                                            bg-red-500/10
-                                            border-red-500/20
-                                            text-red-300
-                                          `
-                                }
-                            `}
-                        >
+<span
 
-                            {message}
+className="
 
-                        </div>
-                    )
-                }
+bg-gradient-to-r
 
+from-indigo-300
 
-                {/* SUBMIT BUTTON */}
+via-violet-300
 
-                <Button
-                    type="submit"
-                    disabled={loading || !isFormValid}
-                >
+to-cyan-300
 
-                    {
-                        loading
-                            ? "Creating Workspace..."
-                            : "Create Account"
-                    }
+bg-clip-text
 
-                </Button>
+text-transparent
 
+"
 
-                {/* LOGIN LINK */}
+>
 
-                <p
-                    className="
-                        text-sm
-                        text-slate-400
-                        text-center
-                    "
-                >
+Discovery
 
-                    Already have an account?
-                    {" "}
+</span>
 
-                    <Link
-                        to="/login"
+<span className="text-white">
 
-                        className="
-                            text-cyan-400
-                            hover:text-cyan-300
-                            transition-colors
-                        "
-                    >
+Platform
 
-                        Access Platform
+</span>
 
-                    </Link>
+</h1>
 
-                </p>
+<p
 
-            </form>
+className="
 
-        </AuthLayout>
-    );
+text-slate-100
+
+text-xl
+
+leading-10
+
+max-w-[550px]
+
+"
+
+>
+
+Discover vendors,
+
+analyze capabilities,
+
+benchmark pricing
+
+and drive procurement
+
+decisions through AI.
+
+</p>
+
+</div>
+
+</div>
+
+{/* RIGHT */}
+
+<div
+
+className="
+
+flex
+
+justify-center
+
+items-center
+
+p-6
+
+"
+
+>
+
+<div
+
+className="
+
+bg-white
+
+rounded-[36px]
+
+shadow-xl
+
+border
+
+border-slate-200
+
+w-full
+
+max-w-[700px]
+
+max-h-[92vh]
+
+overflow-y-auto
+
+p-8
+
+"
+
+>
+
+<div className="flex justify-center mb-5">
+
+<div
+
+className="
+
+w-16
+
+h-16
+
+rounded-3xl
+
+bg-indigo-100
+
+flex
+
+justify-center
+
+items-center
+
+"
+
+>
+
+<Shield className="text-indigo-600"/>
+
+</div>
+
+</div>
+
+<h2 className="text-4xl font-bold text-center">
+
+Create Account
+
+</h2>
+
+<p className="text-center text-slate-500 mb-8">
+
+Setup your workspace
+
+</p>
+
+<form
+onSubmit={handleSubmit}
+className="space-y-4"
+>
+
+<div className="grid grid-cols-2 gap-4">
+
+<button
+type="button"
+onClick={()=>setFormData(prev=>({...prev,role:"user"}))}
+className={`
+
+p-4
+
+rounded-2xl
+
+border
+
+font-semibold
+
+transition-all
+
+${
+
+formData.role==="user"
+
+?
+
+"bg-indigo-100 border-indigo-500"
+
+:
+
+"bg-white"
+
+}
+
+`}
+>
+
+<User className="mx-auto mb-2"/>
+
+Register User
+
+</button>
+
+<button
+type="button"
+onClick={()=>setFormData(prev=>({...prev,role:"vendor"}))}
+className={`
+
+p-4
+
+rounded-2xl
+
+border
+
+font-semibold
+
+transition-all
+
+${
+
+formData.role==="vendor"
+
+?
+
+"bg-indigo-100 border-indigo-500"
+
+:
+
+"bg-white"
+
+}
+
+`}
+>
+
+<Building2 className="mx-auto mb-2"/>
+
+Register Vendor
+
+</button>
+
+</div>
+
+<Input label="Username" name="username" value={formData.username} onChange={handleChange}/>
+<p className="text-red-500 text-sm">{errors.username}</p>
+
+<Input label="Full Name" name="full_name" value={formData.full_name} onChange={handleChange}/>
+<p className="text-red-500 text-sm">{errors.full_name}</p>
+
+<Input label="Email" name="email" value={formData.email} onChange={handleChange}/>
+<p className="text-red-500 text-sm">{errors.email}</p>
+
+{
+formData.role==="vendor"&&(
+<>
+<Input label="Business Email" name="business_email" value={formData.business_email} onChange={handleChange}/>
+<p className="text-red-500 text-sm">{errors.business_email}</p>
+</>
+)
+}
+
+<Input label="Phone Number" name="phone_number" value={formData.phone_number} onChange={handleChange}/>
+<p className="text-red-500 text-sm">{errors.phone_number}</p>
+
+<div className="relative">
+
+<Input
+label="Password"
+name="password"
+type={showPassword?"text":"password"}
+value={formData.password}
+onChange={handleChange}
+/>
+
+<button
+type="button"
+onClick={()=>setShowPassword(prev=>!prev)}
+className="absolute right-4 top-11"
+>
+
+{showPassword?<EyeOff/>:<Eye/>}
+
+</button>
+
+</div>
+
+<div className="relative">
+
+<Input
+label="Confirm Password"
+name="confirm_password"
+type={showConfirm?"text":"password"}
+value={formData.confirm_password}
+onChange={handleChange}
+/>
+
+<button
+type="button"
+onClick={()=>setShowConfirm(prev=>!prev)}
+className="absolute right-4 top-11"
+>
+
+{showConfirm?<EyeOff/>:<Eye/>}
+
+</button>
+
+</div>
+
+<p className="text-red-500 text-sm">
+
+{errors.confirm_password}
+
+</p>
+
+{
+message&&(
+<p className={success?"text-green-600":"text-red-500"}>
+{message}
+</p>
+)
+}
+
+<Button disabled={loading}>
+
+{
+loading
+?
+"Creating..."
+:
+"Create Account"
+}
+
+</Button>
+
+<p className="text-center">
+
+Already have account?
+
+<Link
+to="/login"
+className="ml-2 font-semibold text-indigo-600"
+>
+
+Login
+
+</Link>
+
+</p>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+);
+
 };
 
 export default RegisterForm;

@@ -1,771 +1,891 @@
-import { useEffect, useState } from "react";
-import axiosInstance from "../../api/axiosInstance";
+import {
+useEffect,
+useState,
+useMemo
+} from "react";
 
-const VendorDetailsPage = () => {
+import {
+Building2,
+Users,
+Star,
+TrendingUp
+} from "lucide-react";
 
-    const [vendors, setVendors] = useState([]);
+import axiosInstance
+from "../../api/axiosInstance";
 
-    const [categories, setCategories] = useState([]);
+import MainLayout
+from "../../components/layouts/MainLayout/MainLayout";
 
-    const [subcategories, setSubcategories] = useState([]);
+import VendorFilters
+from "../../components/vendor/VendorFilters/VendorFilters";
 
-    const [loading, setLoading] = useState(false);
+import VendorCard
+from "../../components/vendor/VendorCard/VendorCard";
 
-    const [hasSearched, setHasSearched] = useState(false);
+import VendorDetails
+from "../../components/vendor/VendorDetails/VendorDetails";
 
-    const [totalResults, setTotalResults] = useState(0);
+import Loader
+from "../../components/common/Loader/Loader";
 
-    const [page, setPage] = useState(1);
+import EmptyState
+from "../../components/common/EmptyState/EmptyState";
 
-    const limit = 10;
+import Pagination
+from "../../components/common/Pagination/Pagination";
 
+import Modal
+from "../../components/common/Modal/Modal";
 
-    // FILTER STATES
+import PageHeader
+from "../../components/common/PageHeader/PageHeader";
 
-    const [query, setQuery] = useState("");
+import KpiCard
+from "../../components/common/KpiCard/KpiCard";
 
-    const [city, setCity] = useState("");
 
-    const [category, setCategory] = useState("");
+const VendorDetailsPage=()=>{
 
-    const [subcategory, setSubcategory] = useState("");
+const[
+vendors,
+setVendors
+]=useState([]);
 
-    const [minPrice, setMinPrice] = useState("");
+const[
+categories,
+setCategories
+]=useState([]);
 
-    const [maxPrice, setMaxPrice] = useState("");
+const[
+selectedVendor,
+setSelectedVendor
+]=useState(null);
 
-    const [pricingType, setPricingType] = useState("");
+const[
+loading,
+setLoading
+]=useState(false);
 
-    const [rating, setRating] = useState("");
+const[
+page,
+setPage
+]=useState(1);
 
-    const [available, setAvailable] = useState("");
+const[
+totalResults,
+setTotalResults
+]=useState(0);
 
-    const [verified, setVerified] = useState("");
+const[
+totalPages,
+setTotalPages
+]=useState(1);
 
-    const [sortBy, setSortBy] = useState("");
+const limit=9;
 
+const[
+filters,
+setFilters
+]=useState({
 
-    // FETCH CATEGORIES
+query:"",
+city:"",
+category:"",
+service:"",
+minPrice:"",
+maxPrice:"",
+rating:"",
+sort:"",
+availability:""
 
-    const fetchCategories = async () => {
+});
 
-        try {
 
-            const response = await axiosInstance.get(
-                "/categories"
-            );
+useEffect(()=>{
 
-            setCategories(
-                response.data.categories || []
-            );
+fetchVendorCategories();
 
-        }
+fetchVendors(1);
 
-        catch (error) {
+},[]);
 
-            console.error(error);
 
-        }
+const fetchVendorCategories=
 
-    };
+async()=>{
 
+try{
 
-    // FETCH SUBCATEGORIES
+const response=
 
-    const fetchSubcategories = async () => {
+await axiosInstance.get(
 
-        try {
+"/vendors/internal-team"
 
-            const response = await axiosInstance.get(
-                "/subcategories"
-            );
+);
 
-            setSubcategories(
-                response.data.subcategories || []
-            );
+const payload=
 
-        }
+response.data?.data||
 
-        catch (error) {
+response.data;
 
-            console.error(error);
+const teams=
 
-        }
+payload?.teams||
 
-    };
+[];
 
+setCategories(
 
-    useEffect(() => {
+teams.map(
 
-        fetchCategories();
+team=>({
 
-        fetchSubcategories();
+category_id:
 
-    }, []);
+team.vendor_id,
 
+name:
 
-    // SEARCH
+team.name
 
-    const fetchVendors = async (
+})
 
-        targetPage = 1
+)
 
-    ) => {
+);
 
-        try {
+}
 
-            setLoading(true);
+catch(error){
 
-            setHasSearched(true);
+console.log(
 
-            setPage(targetPage);
+"Category fetch failed",
 
-            const response = await axiosInstance.get(
+error
 
-                "/vendors/search",
+);
 
-                {
+}
 
-                    params: {
+};
 
-                        query:
-                            query || undefined,
 
-                        city:
-                            city || undefined,
+const fetchVendors=
 
-                        category:
-                            category || undefined,
+async(
 
-                        subcategory:
-                            subcategory || undefined,
+currentPage=1
 
-                        min_price:
-                            minPrice || undefined,
+)=>{
 
-                        max_price:
-                            maxPrice || undefined,
+try{
 
-                        pricing_type:
-                            pricingType || undefined,
+setLoading(
 
-                        rating:
-                            rating || undefined,
+true
 
-                        available:
+);
 
-                            available === ""
+const response=
 
-                                ? undefined
+await axiosInstance.get(
 
-                                : available,
+"/vendors/search",
 
-                        verified:
+{
 
-                            verified === ""
+params:{
 
-                                ? undefined
+query:
 
-                                : verified,
+filters.query||
 
-                        sort_by:
-                            sortBy || undefined,
+undefined,
 
-                        page:
-                            targetPage,
+city:
 
-                        limit
+filters.city||
 
-                    }
+undefined,
 
-                }
+category:
 
-            );
+filters.category||
 
-            setVendors(
-                response.data.vendors || []
-            );
+undefined,
 
-            setTotalResults(
-                response.data.total_results || 0
-            );
+service:
 
-        }
+filters.service||
 
-        catch (error) {
+undefined,
 
-            console.error(error);
+min_price:
 
-        }
+filters.minPrice||
 
-        finally {
+undefined,
 
-            setLoading(false);
+max_price:
 
-        }
+filters.maxPrice||
 
-    };
+undefined,
 
+rating:
 
-    // RESET
+filters.rating||
 
-    const resetFilters = () => {
+undefined,
 
-        setQuery("");
+sort_by:
 
-        setCity("");
+filters.sort||
 
-        setCategory("");
+undefined,
 
-        setSubcategory("");
+availability:
 
-        setMinPrice("");
+filters.availability||
 
-        setMaxPrice("");
+undefined,
 
-        setPricingType("");
+page:
 
-        setRating("");
+currentPage,
 
-        setAvailable("");
+limit
 
-        setVerified("");
+}
 
-        setSortBy("");
+}
 
-        setPage(1);
+);
 
-        setHasSearched(false);
+const payload=
 
-        setVendors([]);
+response.data?.data||
 
-        setTotalResults(0);
+response.data;
 
-    };
+setVendors(
 
+payload?.vendors||
 
-    const totalPages = Math.ceil(
+[]
 
-        totalResults / limit
+);
 
-    );
+setTotalResults(
 
+payload?.total_results||
 
-    return (
+0
 
-        <div className="min-h-screen bg-gray-950 text-white p-10">
+);
 
-            <div className="max-w-7xl mx-auto">
+setTotalPages(
 
-                <h1 className="text-5xl font-bold text-violet-400 mb-8">
+payload?.total_pages||
 
-                    Vendor Marketplace
+1
 
-                </h1>
+);
 
+setPage(
 
-                <div className="bg-gray-900 p-8 rounded-2xl mb-10">
+payload?.page||
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+1
 
+);
 
-                        <div>
+}
 
-                            <label className="block mb-2 text-violet-300">
+catch(error){
 
-                                Vendor Name
+console.log(
 
-                            </label>
+"Search failed",
 
-                            <input
+error
 
-                                value={query}
+);
 
-                                placeholder="Search Vendor"
+}
 
-                                onChange={(e)=>
+finally{
 
-                                    setQuery(
-                                        e.target.value
-                                    )
+setLoading(
 
-                                }
+false
 
-                                className="w-full bg-gray-800 text-white p-3 rounded-xl"
+);
 
-                            />
+}
 
-                        </div>
+};
 
 
-                        <div>
+const trackVendorView=
 
-                            <label className="block mb-2 text-violet-300">
+async(
 
-                                City
+vendorId
 
-                            </label>
+)=>{
 
-                            <input
+try{
 
-                                value={city}
+await axiosInstance.post(
 
-                                placeholder="Enter City"
+`/vendors/${vendorId}/view`
 
-                                onChange={(e)=>
+);
 
-                                    setCity(
-                                        e.target.value
-                                    )
+}
 
-                                }
+catch(error){
 
-                                className="w-full bg-gray-800 text-white p-3 rounded-xl"
+console.log(
 
-                            />
+"Track failed",
 
-                        </div>
+error
 
+);
 
-                        <div>
+}
 
-                            <label className="block mb-2 text-violet-300">
+};
 
-                                Category
 
-                            </label>
+const openVendor=
 
-                            <select
+async(
 
-                                value={category}
+vendor
 
-                                onChange={(e)=>setCategory(e.target.value)}
+)=>{
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+await trackVendorView(
 
-                            >
+vendor.vendor_id
 
-                                <option value="">
+);
 
-                                    Select Category
+setSelectedVendor({
 
-                                </option>
+...vendor,
 
-                                {
+profile_views:
 
-                                    categories.map(
+(
 
-                                        (item)=>(
+vendor.profile_views||
 
-                                            <option
+0
 
-                                                key={item.category_id}
+)+1
 
-                                                value={item.name}
+});
 
-                                            >
+};
 
-                                                {item.name}
 
-                                            </option>
+const saveVendor=
 
-                                        )
+async(
 
-                                    )
+vendor
 
-                                }
+)=>{
 
-                            </select>
+try{
 
-                        </div>
+await axiosInstance.post(
 
+`/vendors/${vendor.vendor_id}/save`
 
-                        <div>
+);
 
-                            <label className="block mb-2 text-violet-300">
+setVendors(
 
-                                Subcategory
+previous=>
 
-                            </label>
+previous.map(
 
-                            <select
+item=>
 
-                                value={subcategory}
+item.vendor_id===
 
-                                onChange={(e)=>setSubcategory(e.target.value)}
+vendor.vendor_id
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+?
 
-                            >
+{
 
-                                <option value="">
+...item,
 
-                                    Select Subcategory
+saved:true
 
-                                </option>
+}
 
-                                {
+:
 
-                                    subcategories.map(
+item
 
-                                        (item)=>(
+)
 
-                                            <option
+);
 
-                                                key={item.subcategory_id}
+}
 
-                                                value={item.name}
+catch(error){
 
-                                            >
+console.log(
 
-                                                {item.name}
+"Save failed",
 
-                                            </option>
+error
 
-                                        )
+);
 
-                                    )
+}
 
-                                }
+};
 
-                            </select>
 
-                        </div>
+const resetFilters=()=>{
 
+setFilters({
 
-                        <div>
+query:"",
+city:"",
+category:"",
+service:"",
+minPrice:"",
+maxPrice:"",
+rating:"",
+sort:"",
+availability:""
 
-                            <label>Min Price</label>
+});
 
-                            <input
+fetchVendors(
 
-                                type="number"
+1
 
-                                value={minPrice}
+);
 
-                                onChange={(e)=>setMinPrice(e.target.value)}
+};
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
 
-                            />
+const averageRating=
 
-                        </div>
+useMemo(()=>{
 
+if(
 
-                        <div>
+!vendors.length
 
-                            <label>Max Price</label>
+){
 
-                            <input
+return "0";
 
-                                type="number"
+}
 
-                                value={maxPrice}
+return(
 
-                                onChange={(e)=>setMaxPrice(e.target.value)}
+vendors.reduce(
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+(
 
-                            />
+sum,
 
-                        </div>
+vendor
 
+)=>
 
-                        <div>
+sum+
 
-                            <label>Pricing Type</label>
+Number(
 
-                            <select
+vendor.avg_rating||
 
-                                value={pricingType}
+0
 
-                                onChange={(e)=>setPricingType(e.target.value)}
+),
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+0
 
-                            >
+)
 
-                                <option value="">Select</option>
+/vendors.length
 
-                                <option value="fixed">Fixed</option>
+).toFixed(1);
 
-                                <option value="hourly">Hourly</option>
+},[vendors]);
 
-                                <option value="package">Package</option>
 
-                                <option value="custom">Custom</option>
+const stats=[
 
-                            </select>
+{
 
-                        </div>
+title:"Vendors",
 
+value:
 
-                        <div>
+totalResults,
 
-                            <label>Rating</label>
+icon:<Building2/>,
 
-                            <select
+color:
 
-                                value={rating}
+"bg-blue-100"
 
-                                onChange={(e)=>setRating(e.target.value)}
+},
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+{
 
-                            >
+title:"Categories",
 
-                                <option value="">Select</option>
+value:
 
-                                <option value="4">4+</option>
+categories.length,
 
-                                <option value="3">3+</option>
+icon:<Users/>,
 
-                                <option value="2">2+</option>
+color:
 
-                            </select>
+"bg-purple-100"
 
-                        </div>
+},
 
+{
 
-                        <div>
+title:"Avg Rating",
 
-                            <label>Availability</label>
+value:
 
-                            <select
+averageRating,
 
-                                value={available}
+icon:<Star/>,
 
-                                onChange={(e)=>setAvailable(e.target.value)}
+color:
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+"bg-amber-100"
 
-                            >
+},
 
-                                <option value="">All</option>
+{
 
-                                <option value="true">Available</option>
+title:"Growth",
 
-                                <option value="false">Unavailable</option>
+value:
 
-                            </select>
+vendors.length
 
-                        </div>
+?
 
+`+${vendors.length*3}%`
 
-                        <div>
+:
 
-                            <label>Verification</label>
+"0%",
 
-                            <select
+icon:<TrendingUp/>,
 
-                                value={verified}
+color:
 
-                                onChange={(e)=>setVerified(e.target.value)}
+"bg-green-100"
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+}
 
-                            >
+];
 
-                                <option value="">All</option>
 
-                                <option value="true">Verified</option>
+return(
 
-                            </select>
+<MainLayout>
 
-                        </div>
+<div
 
+className="space-y-8"
 
-                        <div>
+>
 
-                            <label>Sort</label>
+<PageHeader
 
-                            <select
+title=
 
-                                value={sortBy}
+"Vendor Marketplace"
 
-                                onChange={(e)=>setSortBy(e.target.value)}
+subtitle=
 
-                                className="w-full bg-gray-800 p-3 rounded-xl"
+"Search vendors compare pricing and analyze intelligence"
 
-                            >
+/>
 
-                                <option value="">Select</option>
 
-                                <option value="rating">Highest Rating</option>
+<div
 
-                                <option value="price_low">Lowest Price</option>
+className="
 
-                                <option value="price_high">Highest Price</option>
+grid
 
-                                <option value="latest">Latest</option>
+md:grid-cols-2
 
-                            </select>
+xl:grid-cols-4
 
-                        </div>
+gap-6
 
-                    </div>
+"
 
+>
 
-                    <div className="flex gap-4 mt-8">
+{
 
-                        <button
-                            onClick={()=>fetchVendors()}
-                            className="bg-violet-600 px-8 py-3 rounded-xl"
-                        >
-                            Search
-                        </button>
+stats.map(
 
-                        <button
-                            onClick={resetFilters}
-                            className="bg-red-600 px-8 py-3 rounded-xl"
-                        >
-                            Reset
-                        </button>
+card=>(
 
-                    </div>
+<KpiCard
 
-                </div>
+key={
 
+card.title
 
-                <h2 className="mb-6">
+}
 
-                    Results: {totalResults}
+{...card}
 
-                </h2>
+/>
 
+)
 
-                {
+)
 
-                    loading ? (
+}
 
-                        <div>
+</div>
 
-                            Loading Vendors...
 
-                        </div>
+<VendorFilters
 
-                    )
+filters={filters}
 
-                    :
+setFilters={setFilters}
 
-                    vendors.length > 0 ? (
+categories={categories}
 
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+onSearch={()=>
 
-                            {
+fetchVendors(
 
-                                vendors.map(
+1
 
-                                    (vendor)=>(
+)
 
-                                        <div
-                                            key={vendor.vendor_id}
-                                            className="bg-gray-900 border border-violet-500/20 rounded-2xl p-6"
-                                        >
+}
 
-                                            <h3 className="text-2xl font-bold text-violet-400 mb-2">
+onReset={resetFilters}
 
-                                                {vendor.name}
+/>
 
-                                            </h3>
 
-                                            <p className="text-violet-300 mb-2">
+{
 
-                                                ⭐ {vendor.avg_rating}
+loading
 
-                                                {" ("}
+?
 
-                                                {vendor.review_count || 0}
+<Loader/>
 
-                                                {" reviews)"}
+:
 
-                                            </p>
+vendors.length===0
 
-                                            <p>
+?
 
-                                                📍 {vendor.city}
+<EmptyState
 
-                                            </p>
+title=
 
-                                            <p>
+"No Vendors Found"
 
-                                                🏠 {vendor.address || "Address unavailable"}
+message=
 
-                                            </p>
+"Try adjusting filters or search again."
 
-                                            <p className="text-green-400 font-semibold mt-2">
+buttonText=
 
-                                                ₹ {vendor.price_min}
+"Reload"
 
-                                                {" - ₹ "}
+onClick={()=>
 
-                                                {vendor.price_max}
+fetchVendors(
 
-                                            </p>
+1
 
-                                            <p className="mt-3 text-gray-300">
+)
 
-                                                {
+}
 
-                                                    vendor.description ||
+/>
 
-                                                    "No description available"
+:
 
-                                                }
+<>
 
-                                            </p>
+<div
 
-                                            <div className="border-t border-gray-700 mt-4 pt-4">
+className="
 
-                                                <p>
+grid
 
-                                                    📞 {vendor.contact_phone}
+xl:grid-cols-3
 
-                                                </p>
+lg:grid-cols-2
 
-                                                <p>
+gap-6
 
-                                                    📧 {vendor.business_email}
+"
 
-                                                </p>
+>
 
-                                            </div>
+{
 
-                                        </div>
+vendors.map(
 
-                                    )
+vendor=>(
 
-                                )
+<VendorCard
 
-                            }
+key={
 
-                        </div>
+vendor.vendor_id
 
-                    )
+}
 
-                    :
+vendor={
 
-                    (
+vendor
 
-                        hasSearched && (
+}
 
-                            <div>
+onView={()=>
 
-                                No Vendors Found
+openVendor(
 
-                            </div>
+vendor
 
-                        )
+)
 
-                    )
+}
 
-                }
+onSave={()=>
 
-            </div>
+saveVendor(
 
-        </div>
+vendor
 
-    );
+)
+}
+
+/>
+
+)
+
+)
+
+}
+
+</div>
+
+
+<Pagination
+
+currentPage={
+
+page
+
+}
+
+totalPages={
+
+totalPages
+
+}
+
+onPageChange={
+
+fetchVendors
+
+}
+
+/>
+
+</>
+
+}
+
+
+<Modal
+
+isOpen={
+
+!!selectedVendor
+
+}
+
+onClose={()=>
+
+setSelectedVendor(
+
+null
+
+)
+
+}
+
+title=
+
+"Vendor Details"
+
+size="lg"
+
+>
+
+{
+
+selectedVendor&&(
+
+<VendorDetails
+
+vendor={
+
+selectedVendor
+
+}
+
+/>
+
+)
+
+}
+
+</Modal>
+
+</div>
+
+</MainLayout>
+
+);
 
 };
 

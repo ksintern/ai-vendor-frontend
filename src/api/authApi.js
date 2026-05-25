@@ -1,73 +1,141 @@
 import axiosInstance from "./axiosInstance";
 
 
-// -----------------------------
-// LOGIN API
-// -----------------------------
+// ====================================
+// LOGIN
+// ====================================
 
 export const loginApi = async (
-    loginData
-) => {
 
-    const response = await axiosInstance.post(
+loginData
 
-        "/auth/login",
+)=>{
 
-        loginData
-    );
+const response=
 
-    return response.data;
+await axiosInstance.post(
+
+"/auth/login",
+
+loginData
+
+);
+
+return response.data;
+
 };
 
 
-// -----------------------------
-// REGISTER API
-// -----------------------------
+// ====================================
+// REGISTER
+// ====================================
 
 export const registerApi = async (
-    registerData
-) => {
 
-    const response = await axiosInstance.post(
+registerData
 
-        "/auth/register",
+)=>{
 
-        registerData
-    );
+const response=
 
-    return response.data;
+await axiosInstance.post(
+
+"/auth/register",
+
+registerData
+
+);
+
+return response.data;
+
 };
 
 
-// -----------------------------
-// CHECK USERNAME API
-// -----------------------------
+// ====================================
+// LOGOUT
+// ====================================
 
-export const checkUsernameApi = async (
-    username
-) => {
+export const logoutApi = async ()=>{
 
-    const response = await axiosInstance.get(
+const response=
 
-        `/auth/check-username/${username}`
-    );
+await axiosInstance.post(
 
-    return response.data;
+"/auth/logout"
+
+);
+
+return response.data;
+
 };
 
 
-// -----------------------------
-// CHECK EMAIL API
-// -----------------------------
+// ====================================
+// REFRESH TOKEN
+// ====================================
 
-export const checkEmailApi = async (
-    email
-) => {
+export const refreshTokenApi=
 
-    const response = await axiosInstance.get(
+async()=>{
 
-        `/auth/check-email/${email}`
-    );
+const response=
 
-    return response.data;
+await axiosInstance.post(
+
+"/auth/refresh"
+
+);
+
+return response.data;
+
+};
+
+
+// ====================================
+// CHECK USERNAME
+// ====================================
+
+export const checkUsernameApi=
+
+async(
+
+username
+
+)=>{
+
+const response=
+
+await axiosInstance.get(
+
+`/auth/check-username/${username}`
+
+);
+
+return response.data;
+
+};
+
+
+// ====================================
+// CHECK EMAIL
+// ====================================
+
+export const checkEmailApi=
+
+async(
+
+email
+
+)=>{
+
+const response=
+
+await axiosInstance.get(
+
+`/auth/check-email/${email}`
+
+);
+
+return response.data;
+
 };

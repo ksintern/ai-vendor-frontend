@@ -1,107 +1,257 @@
 import {
 
-    loginApi,
+loginApi,
 
-    registerApi,
+registerApi,
 
-    checkUsernameApi,
+logoutApi,
 
-    checkEmailApi
+refreshTokenApi,
+
+checkUsernameApi,
+
+checkEmailApi
 
 } from "../api/authApi";
 
 
-// -----------------------------
-// LOGIN SERVICE
-// -----------------------------
+// =====================================
+// LOGIN
+// =====================================
 
-export const loginService = async (
-    loginData
-) => {
+export const loginService=
 
-    try {
+async(
 
-        return await loginApi(
-            loginData
-        );
+loginData
 
-    } catch (error) {
+)=>{
 
-        throw error.response?.data || {
+try{
 
-            detail: "Login failed"
-        };
-    }
+return await loginApi(
+
+loginData
+
+);
+
+}
+
+catch(error){
+
+throw(
+
+error.response?.data||
+
+{
+
+detail:
+
+"Login failed"
+
+}
+
+);
+
+}
+
 };
 
 
-// -----------------------------
-// REGISTER SERVICE
-// -----------------------------
+// =====================================
+// REGISTER
+// =====================================
 
-export const registerService = async (
-    registerData
-) => {
+export const registerService=
 
-    try {
+async(
 
-        return await registerApi(
-            registerData
-        );
+registerData
 
-    } catch (error) {
+)=>{
 
-        throw error.response?.data || {
+try{
 
-            detail: "Registration failed"
-        };
-    }
+return await registerApi(
+
+registerData
+
+);
+
+}
+
+catch(error){
+
+throw(
+
+error.response?.data||
+
+{
+
+detail:
+
+"Registration failed"
+
+}
+
+);
+
+}
+
 };
 
 
-// -----------------------------
-// CHECK USERNAME SERVICE
-// -----------------------------
+// =====================================
+// LOGOUT
+// =====================================
 
-export const checkUsernameService = async (
-    username
-) => {
+export const logoutService=
 
-    try {
+async()=>{
 
-        return await checkUsernameApi(
-            username
-        );
+try{
 
-    } catch (error) {
+return await logoutApi();
 
-        throw error.response?.data || {
+}
 
-            detail: "Username validation failed"
-        };
-    }
+catch(error){
+
+throw(
+
+error.response?.data||
+
+{
+
+detail:
+
+"Logout failed"
+
+}
+
+);
+
+}
+
 };
 
 
-// -----------------------------
-// CHECK EMAIL SERVICE
-// -----------------------------
+// =====================================
+// REFRESH TOKEN
+// =====================================
 
-export const checkEmailService = async (
-    email
-) => {
+export const refreshService=
 
-    try {
+async()=>{
 
-        return await checkEmailApi(
-            email
-        );
+try{
 
-    } catch (error) {
+return await refreshTokenApi();
 
-        throw error.response?.data || {
+}
 
-            detail: "Email validation failed"
-        };
-    }
+catch(error){
+
+throw(
+
+error.response?.data||
+
+{
+
+detail:
+
+"Refresh failed"
+
+}
+
+);
+
+}
+
+};
+
+
+// =====================================
+// USERNAME CHECK
+// =====================================
+
+export const checkUsernameService=
+
+async(
+
+username
+
+)=>{
+
+try{
+
+return await checkUsernameApi(
+
+username
+
+);
+
+}
+
+catch(error){
+
+throw(
+
+error.response?.data||
+
+{
+
+detail:
+
+"Username validation failed"
+
+}
+
+);
+
+}
+
+};
+
+
+// =====================================
+// EMAIL CHECK
+// =====================================
+
+export const checkEmailService=
+
+async(
+
+email
+
+)=>{
+
+try{
+
+return await checkEmailApi(
+
+email
+
+);
+
+}
+
+catch(error){
+
+throw(
+
+error.response?.data||
+
+{
+
+detail:
+
+"Email validation failed"
+
+}
+
+);
+
+}
+
 };

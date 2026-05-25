@@ -1,97 +1,454 @@
-import { useTheme } from "../../../context/ThemeContext";
+import {
 
-const Input = ({
-    label,
-    type = "text",
-    placeholder,
-    name,
-    value,
-    onChange,
-    required = false,
-    disabled = false,
-}) => {
+useState
 
-    const theme = useTheme();
+} from "react";
 
-    return (
+import {
 
-        <div className="w-full">
+Eye,
+EyeOff
 
-            {
+} from "lucide-react";
 
-                label && (
+import {
 
-                    <label
+useTheme
 
-                        htmlFor={name}
+} from "../../../context/ThemeContext";
 
-                        className="block mb-2 text-sm font-medium text-violet-300"
 
-                    >
+const Input=({
 
-                        {label}
+label,
+type="text",
+placeholder,
+name,
+value,
+onChange,
+required=false,
+disabled=false,
+error="",
+helperText="",
+icon=null
 
-                    </label>
+})=>{
 
-                )
+const theme=
 
-            }
+useTheme();
 
-            <input
+const[
 
-                id={name}
+showPassword,
+setShowPassword
 
-                type={type}
+]=useState(false);
 
-                name={name}
 
-                placeholder={placeholder}
+const actualType=
 
-                value={value}
+type==="password"
 
-                onChange={onChange}
+?
 
-                required={required}
+(
 
-                disabled={disabled}
+showPassword
 
-                className={`
+?
 
-                    w-full
-                    px-5
-                    py-4
+"text"
 
-                    ${theme.colors.input}
+:
 
-                    ${theme.radius.input}
+"password"
 
-                    border
-                    border-gray-700
+)
 
-                    bg-gray-800
+:
 
-                    text-white
+type;
 
-                    placeholder-gray-400
 
-                    transition-all
-                    duration-300
+return(
 
-                    focus:outline-none
+<div
 
-                    focus:border-violet-500
+className="w-full"
 
-                    focus:ring-2
+>
 
-                    focus:ring-violet-500/40
+{/* LABEL */}
 
-                `}
+{
 
-            />
+label&&(
 
-        </div>
+<label
 
-    );
+htmlFor={name}
+
+className="
+
+block
+
+mb-2
+
+text-sm
+
+font-semibold
+
+text-slate-700
+
+"
+
+>
+
+{
+
+label
+
+}
+
+{
+
+required&&(
+
+<span
+
+className="
+
+text-red-500
+
+ml-1
+
+"
+
+>
+
+*
+
+</span>
+
+)
+
+}
+
+</label>
+
+)
+
+}
+
+
+{/* INPUT WRAPPER */}
+
+<div
+
+className="relative"
+
+>
+
+{/* ICON */}
+
+{
+
+icon&&(
+
+<div
+
+className="
+
+absolute
+
+left-4
+
+top-1/2
+
+-translate-y-1/2
+
+text-slate-400
+
+"
+
+>
+
+{
+
+icon
+
+}
+
+</div>
+
+)
+
+}
+
+
+{/* INPUT */}
+
+<input
+
+id={name}
+
+type={actualType}
+
+name={name}
+
+placeholder={placeholder}
+
+value={value}
+
+onChange={onChange}
+
+required={required}
+
+disabled={disabled}
+
+className={`
+
+w-full
+
+py-4
+
+px-5
+
+bg-white
+
+border
+
+rounded-2xl
+
+shadow-sm
+
+text-slate-800
+
+placeholder-slate-400
+
+transition-all
+
+duration-300
+
+outline-none
+
+disabled:opacity-60
+
+disabled:cursor-not-allowed
+
+focus:ring-4
+
+focus:ring-indigo-100
+
+focus:border-indigo-500
+
+hover:border-slate-300
+
+${
+
+icon
+
+?
+
+"pl-12"
+
+:
+
+""
+
+}
+
+${
+
+type==="password"
+
+?
+
+"pr-12"
+
+:
+
+""
+
+}
+
+${
+
+error
+
+?
+
+`
+
+border-red-500
+
+focus:ring-red-100
+
+focus:border-red-500
+
+`
+
+:
+
+`
+
+border-slate-200
+
+`
+
+}
+
+`}
+
+/>
+
+
+{/* PASSWORD */}
+
+{
+
+type==="password"&&(
+
+<button
+
+type="button"
+
+onClick={()=>
+
+setShowPassword(
+
+previous=>
+
+!previous
+
+)
+
+}
+
+className="
+
+absolute
+
+right-4
+
+top-1/2
+
+-translate-y-1/2
+
+text-slate-400
+
+hover:text-indigo-600
+
+transition-all
+
+"
+
+>
+
+{
+
+showPassword
+
+?
+
+<EyeOff
+
+size={18}
+
+/>
+
+:
+
+<Eye
+
+size={18}
+
+/>
+
+}
+
+</button>
+
+)
+
+}
+
+</div>
+
+
+{/* ERROR */}
+
+{
+
+error&&(
+
+<p
+
+className="
+
+mt-2
+
+text-sm
+
+text-red-500
+
+font-medium
+
+"
+
+>
+
+{
+
+error
+
+}
+
+</p>
+
+)
+
+}
+
+
+{/* HELPER */}
+
+{
+
+helperText&&
+
+!error&&(
+
+<p
+
+className="
+
+mt-2
+
+text-sm
+
+text-slate-500
+
+"
+
+>
+
+{
+
+helperText
+
+}
+
+</p>
+
+)
+
+}
+
+</div>
+
+);
 
 };
 

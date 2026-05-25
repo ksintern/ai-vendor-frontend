@@ -1,256 +1,619 @@
-import { useTheme } from "../../../context/ThemeContext";
+import {
 
+Shield,
+Sparkles,
+BrainCircuit,
+TrendingUp
 
-const AuthLayout = ({
-    subtitle,
-    children
-}) => {
+} from "lucide-react";
 
-    const theme = useTheme();
+const AuthLayout=({
 
-    return (
+subtitle,
+children
 
-        <div
-            className={`
-                min-h-screen
-                flex
-                items-center
-                justify-center
-                px-6
-                relative
-                overflow-hidden
-                ${theme.colors.background}
-            `}
-        >
+})=>{
 
-            {/* BACKGROUND EFFECTS */}
+return(
 
-            <div
-                className="
-                    absolute
-                    top-[-100px]
-                    right-[-100px]
-                    w-[400px]
-                    h-[400px]
-                    bg-cyan-500/10
-                    blur-3xl
-                    rounded-full
-                "
-            />
+<div
 
-            <div
-                className="
-                    absolute
-                    bottom-[-120px]
-                    left-[-100px]
-                    w-[350px]
-                    h-[350px]
-                    bg-blue-600/10
-                    blur-3xl
-                    rounded-full
-                "
-            />
+className="
 
+min-h-screen
 
-            {/* MAIN CONTENT */}
+relative
 
-            <div
-                className="
-                    relative
-                    z-10
-                    w-full
-                    max-w-6xl
-                    grid
-                    lg:grid-cols-2
-                    gap-10
-                    items-center
-                "
-            >
+overflow-hidden
 
-                {/* LEFT SIDE */}
+bg-gradient-to-br
 
-                <div className="hidden lg:block">
+from-[#F8FAFF]
 
-                    <div className="max-w-xl">
+via-[#F5F7FC]
 
-                        <p
-                            className="
-                                text-cyan-400
-                                uppercase
-                                tracking-[4px]
-                                text-sm
-                                mb-4
-                            "
-                        >
+to-[#EEF2FF]
 
-                            Enterprise AI Intelligence Platform
+flex
 
-                        </p>
+items-center
 
-                        <h1
-                            className="
-                                text-6xl
-                                font-bold
-                                text-white
-                                leading-tight
-                                mb-6
-                            "
-                        >
+justify-center
 
-                            AI Vendor Discovery Agent
+px-6
 
-                        </h1>
+py-10
 
-                        <p
-                            className="
-                                text-slate-400
-                                text-lg
-                                leading-relaxed
-                                mb-10
-                            "
-                        >
+"
 
-                            Discover, benchmark, analyze,
-                            and manage AI vendors through
-                            intelligent recommendation systems
-                            and enterprise-grade analytics.
+>
 
-                        </p>
+{/* BACKGROUND BLOBS */}
 
+<div
 
-                        {/* FEATURE CARDS */}
+className="
 
-                        <div className="space-y-4">
+absolute
 
-                            <div
-                                className="
-                                    bg-white/5
-                                    border
-                                    border-white/10
-                                    rounded-2xl
-                                    p-5
-                                "
-                            >
+top-[-120px]
 
-                                <h3
-                                    className="
-                                        text-white
-                                        font-semibold
-                                        mb-2
-                                    "
-                                >
+right-[-120px]
 
-                                    AI-Powered Vendor Insights
+h-[380px]
 
-                                </h3>
+w-[380px]
 
-                                <p
-                                    className="
-                                        text-slate-400
-                                        text-sm
-                                    "
-                                >
+rounded-full
 
-                                    Analyze vendor capabilities
-                                    using intelligent AI workflows.
+bg-indigo-300/20
 
-                                </p>
+blur-3xl
 
-                            </div>
+"
 
+/>
 
-                            <div
-                                className="
-                                    bg-white/5
-                                    border
-                                    border-white/10
-                                    rounded-2xl
-                                    p-5
-                                "
-                            >
+<div
 
-                                <h3
-                                    className="
-                                        text-white
-                                        font-semibold
-                                        mb-2
-                                    "
-                                >
+className="
 
-                                    Smart Procurement Analytics
+absolute
 
-                                </h3>
+bottom-[-120px]
 
-                                <p
-                                    className="
-                                        text-slate-400
-                                        text-sm
-                                    "
-                                >
+left-[-120px]
 
-                                    Compare and evaluate AI vendors
-                                    using enterprise intelligence systems.
+h-[320px]
 
-                                </p>
+w-[320px]
 
-                            </div>
+rounded-full
 
-                        </div>
+bg-sky-300/20
 
-                    </div>
+blur-3xl
 
-                </div>
+"
 
+/>
 
-                {/* RIGHT SIDE AUTH CARD */}
+<div
 
-                <div
-                    className={`
-                        w-full
-                        max-w-md
-                        mx-auto
+className="
 
-                        ${theme.colors.card}
-                        ${theme.spacing.cardPadding}
-                        ${theme.radius.card}
-                    `}
-                >
+absolute
 
-                    <div className="mb-8">
+top-[40%]
 
-                        <h2
-                            className="
-                                text-4xl
-                                font-bold
-                                text-white
-                                mb-3
-                            "
-                        >
+left-[45%]
 
-                            Welcome
+h-[250px]
 
-                        </h2>
+w-[250px]
 
-                        <p
-                            className={
-                                theme.colors.textSecondary
-                            }
-                        >
+rounded-full
 
-                            {subtitle}
+bg-violet-300/10
 
-                        </p>
+blur-3xl
 
-                    </div>
+"
 
-                    {children}
+/>
 
-                </div>
+<div
 
-            </div>
+className="
 
-        </div>
-    );
+relative
+
+z-10
+
+grid
+
+lg:grid-cols-2
+
+gap-12
+
+items-center
+
+max-w-7xl
+
+w-full
+
+"
+
+>
+
+{/* LEFT */}
+
+<div
+
+className="hidden lg:block"
+
+>
+
+<p
+
+className="
+
+uppercase
+
+tracking-[4px]
+
+font-semibold
+
+text-indigo-600
+
+mb-5
+
+"
+
+>
+
+Enterprise Intelligence
+
+</p>
+
+<h1
+
+className="
+
+text-6xl
+
+font-bold
+
+leading-tight
+
+text-slate-900
+
+mb-6
+
+"
+
+>
+
+AI Vendor
+
+<span
+
+className="
+
+text-indigo-600
+
+"
+
+>
+
+ Discovery
+
+</span>
+
+Platform
+
+</h1>
+
+<p
+
+className="
+
+text-slate-600
+
+text-lg
+
+leading-8
+
+mb-10
+
+max-w-xl
+
+"
+
+>
+
+Discover vendors,
+
+analyze capabilities,
+
+benchmark pricing
+
+and drive procurement
+
+decisions through
+
+AI-powered intelligence.
+
+</p>
+
+<div
+
+className="space-y-5"
+
+>
+
+<div
+
+className="
+
+glass
+
+rounded-[28px]
+
+p-5
+
+flex
+
+gap-4
+
+items-start
+
+"
+
+>
+
+<div
+
+className="
+
+h-12
+
+w-12
+
+rounded-2xl
+
+bg-indigo-100
+
+flex
+
+items-center
+
+justify-center
+
+"
+
+>
+
+<BrainCircuit
+
+className="
+
+text-indigo-600
+
+"
+
+/>
+
+</div>
+
+<div>
+
+<h3
+
+className="
+
+font-bold
+
+text-lg
+
+mb-1
+
+"
+
+>
+
+AI Recommendations
+
+</h3>
+
+<p
+
+className="
+
+text-slate-500
+
+"
+
+>
+
+Smart vendor suggestions
+
+powered by analytics.
+
+</p>
+
+</div>
+
+</div>
+
+<div
+
+className="
+
+glass
+
+rounded-[28px]
+
+p-5
+
+flex
+
+gap-4
+
+items-start
+
+"
+
+>
+
+<div
+
+className="
+
+h-12
+
+w-12
+
+rounded-2xl
+
+bg-emerald-100
+
+flex
+
+items-center
+
+justify-center
+
+"
+
+>
+
+<TrendingUp
+
+className="
+
+text-emerald-600
+
+"
+
+/>
+
+</div>
+
+<div>
+
+<h3
+
+className="
+
+font-bold
+
+text-lg
+
+mb-1
+
+"
+
+>
+
+Vendor Benchmarking
+
+</h3>
+
+<p
+
+className="
+
+text-slate-500
+
+"
+
+>
+
+Compare pricing,
+
+performance and
+
+engagement metrics.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{/* RIGHT */}
+
+<div
+
+className="
+
+glass
+
+rounded-[40px]
+
+shadow-xl
+
+border
+
+border-white/60
+
+p-10
+
+max-w-md
+
+w-full
+
+mx-auto
+
+"
+
+>
+
+<div
+
+className="
+
+flex
+
+justify-center
+
+mb-6
+
+"
+
+>
+
+<div
+
+className="
+
+h-16
+
+w-16
+
+rounded-3xl
+
+bg-indigo-100
+
+flex
+
+items-center
+
+justify-center
+
+"
+
+>
+
+<Shield
+
+size={28}
+
+className="
+
+text-indigo-600
+
+"
+
+/>
+
+</div>
+
+</div>
+
+<h2
+
+className="
+
+text-4xl
+
+font-bold
+
+text-center
+
+mb-3
+
+"
+
+>
+
+Welcome
+
+</h2>
+
+<p
+
+className="
+
+text-slate-500
+
+text-center
+
+mb-8
+
+"
+
+>
+
+{
+
+subtitle
+
+}
+
+</p>
+
+{
+
+children
+
+}
+
+<div
+
+className="
+
+flex
+
+justify-center
+
+items-center
+
+gap-2
+
+mt-8
+
+text-slate-400
+
+text-sm
+
+"
+
+>
+
+<Sparkles
+
+size={14}
+
+/>
+
+Enterprise AI Platform
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+);
+
 };
 
 export default AuthLayout;
