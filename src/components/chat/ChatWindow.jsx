@@ -1,670 +1,817 @@
 import {
-  useEffect,
-  useRef,
-  useState,
-  useCallback
+
+useEffect,
+useRef,
+useState,
+useCallback
+
 } from "react";
 
 import {
-  sendMessage
+
+sendMessage
+
 } from "../../api/chatApi";
 
 import RecommendationCard from "./RecommendationCard";
 
 
-const MAX_MESSAGE_LENGTH = 500;
+const MAX_MESSAGE_LENGTH=500;
 
+const STORAGE_KEY="vendor_chat_session";
 
-const ChatWindow = () => {
+const WELCOME_MESSAGE={
 
-  const [
-    messages,
-    setMessages
-  ] = useState([]);
+role:"assistant",
 
-  const [
-    input,
-    setInput
-  ] = useState("");
+text:
 
-  const [
-    loading,
-    setLoading
-  ] = useState(false);
+"Hello 👋 Tell me your event requirements and I'll help find vendors.",
 
-  const [
-    sessionId,
-    setSessionId
-  ] = useState(null);
+recommendations:[]
 
-  const [
-    error,
-    setError
-  ] = useState(null);
+};
 
-  const bottomRef = useRef(null);
 
-  const inputRef = useRef(null);
+const ChatWindow=()=>{
 
+const [
 
-  useEffect(() => {
+messages,
+setMessages
 
-    bottomRef.current?.scrollIntoView({
+]=useState(
 
-      behavior: "smooth"
+[WELCOME_MESSAGE]
 
-    });
+);
 
-  }, [
+const [
 
-    messages,
+input,
+setInput
 
-    loading
+]=useState("");
 
-  ]);
+const [
 
+loading,
+setLoading
 
-  useEffect(() => {
+]=useState(false);
 
-    inputRef.current?.focus();
+const [
 
-  }, []);
+sessionId,
+setSessionId
 
+]=useState(
 
-  const appendMessage = useCallback(
+localStorage.getItem(
 
-    (message) => {
+STORAGE_KEY
 
-      setMessages(
+)
 
-        prev => [
+||
 
-          ...prev,
+null
 
-          message
+);
 
-        ]
+const [
 
-      );
+error,
+setError
 
-    },
+]=useState(null);
 
-    []
+const bottomRef=useRef(null);
 
-  );
+const inputRef=useRef(null);
 
+const sendingRef=useRef(false);
 
-  const handleSend = async () => {
 
-    const trimmed = input.trim();
+useEffect(
 
-    if (
+()=>{
 
-      !trimmed ||
+bottomRef.current?.scrollIntoView({
 
-      loading
+behavior:"smooth"
 
-    ) {
+});
 
-      return;
+},
 
-    }
+[
 
-    if (
+messages,
+loading
 
-      trimmed.length >
+]
 
-      MAX_MESSAGE_LENGTH
+);
 
-    ) {
 
-      setError(
+useEffect(
 
-        `Message cannot exceed ${MAX_MESSAGE_LENGTH} characters`
+()=>{
 
-      );
+inputRef.current?.focus();
 
-      return;
+},
 
-    }
+[]
 
-    setError(null);
+);
 
-    appendMessage({
 
-      role: "user",
+useEffect(
 
-      text: trimmed
+()=>{
 
-    });
+if(
 
-    setInput("");
+sessionId
 
-    setLoading(true);
+){
 
-    try {
+localStorage.setItem(
 
-      const result = await sendMessage(
+STORAGE_KEY,
 
-        trimmed,
+sessionId
 
-        sessionId
+);
 
-      );
+}
 
-      if (
+},
 
-        result?.session_id &&
+[
 
-        !sessionId
+sessionId
 
-      ) {
+]
 
-        setSessionId(
+);
 
-          result.session_id
 
-        );
+const appendMessage=useCallback(
 
-      }
+(
 
-      if (
+message
 
-        result?.success
+)=>{
 
-      ) {
+setMessages(
 
-        appendMessage({
+prev=>[
 
-          role: "assistant",
+...prev,
 
-          text:
+message
 
-            result.message ||
+]
 
-            "No response received.",
+);
 
-          recommendations:
+},
 
-            result.recommendations ||
+[]
 
-            []
+);
 
-        });
 
-      }
+const handleSend=async()=>{
 
-      else {
+const trimmed=input.trim();
 
-        appendMessage({
+if(
 
-          role: "error",
+!trimmed
 
-          text:
+||
 
-            result?.error ||
+loading
 
-            "AI temporarily unavailable"
+||
 
-        });
+sendingRef.current
 
-      }
+){
 
-    }
+return;
 
-    catch (
+}
 
-      err
+if(
 
-    ) {
+trimmed.length>
 
-      console.error(
+MAX_MESSAGE_LENGTH
 
-        "Chat API Error:",
+){
 
-        err
+setError(
 
-      );
+`Message cannot exceed ${MAX_MESSAGE_LENGTH} characters`
 
-      appendMessage({
+);
 
-        role: "error",
+return;
 
-        text:
+}
 
-          "Unable to connect. Please try again."
+sendingRef.current=true;
 
-      });
+setError(null);
 
-    }
+appendMessage({
 
-    finally {
+role:"user",
 
-      setLoading(false);
+text:trimmed
 
-      inputRef.current?.focus();
+});
 
-    }
+setInput("");
 
-  };
+setLoading(true);
 
+try{
 
-  const handleKeyDown = (
+const result=
 
-    e
+await sendMessage(
 
-  ) => {
+trimmed,
 
-    if (
+sessionId
 
-      e.key === "Enter" &&
+);
 
-      !e.shiftKey
+if(
 
-    ) {
+result?.session_id
 
-      e.preventDefault();
+&&
 
-      handleSend();
+result.session_id!==sessionId
 
-    }
+){
 
-  };
+setSessionId(
 
+result.session_id
 
-  return (
+);
 
-    <div
+}
 
-      className="
+if(
 
-      flex
+result?.success
 
-      flex-col
+){
 
-      h-full
+appendMessage({
 
-      bg-white
+role:"assistant",
 
-      border
+text:
 
-      rounded-lg
+result.message
 
-      shadow-sm
+||
 
-      overflow-hidden
+"No response received.",
 
-      "
+recommendations:
 
-    >
+result.recommendations
 
-      <div
+||
 
-        className="
+[]
 
-        flex-1
+});
 
-        overflow-y-auto
+}
 
-        p-4
+else{
 
-        space-y-4
+appendMessage({
 
-        "
+role:"error",
 
-      >
+text:
 
-        {
+result?.error
 
-          messages.map(
+||
 
-            (
+"Unable to process request."
 
-              msg,
+});
 
-              index
+}
 
-            ) => (
+}
 
-              <div
+catch(
 
-                key={index}
+err
 
-                className="
+){
 
-                flex
+console.error(
 
-                flex-col
+err
 
-                "
+);
 
-              >
+appendMessage({
 
-                <div
+role:"error",
 
-                  className={`
+text:
 
-                  max-w-[75%]
+"Unable to connect. Please try again."
 
-                  px-4
+});
 
-                  py-3
+}
 
-                  rounded-xl
+finally{
 
-                  whitespace-pre-wrap
+sendingRef.current=false;
 
-                  break-words
+setLoading(false);
 
-                  ${
+inputRef.current?.focus();
 
-                    msg.role === "user"
+}
 
-                    ?
+};
 
-                    "bg-blue-600 text-white ml-auto"
 
-                    :
+const handleKeyDown=(
 
-                    msg.role === "assistant"
+e
 
-                    ?
+)=>{
 
-                    "bg-gray-100 text-black"
+if(
 
-                    :
+e.key==="Enter"
 
-                    "bg-red-100 text-red-700"
+&&
 
-                  }
+!e.shiftKey
 
-                  `}
+){
 
-                >
+e.preventDefault();
 
-                  {
+handleSend();
 
-                    msg.text
+}
 
-                  }
+};
 
-                </div>
 
-                {
+return(
 
-                  msg.role === "assistant"
+<div
 
-                  &&
+className="
 
-                  msg.recommendations?.length > 0
+flex
+flex-col
+h-full
+bg-white
+border
+rounded-xl
+shadow-sm
+overflow-hidden
 
-                  && (
+"
 
-                    <div
+>
 
-                      className="
+<div
 
-                      mt-3
+className="
 
-                      space-y-3
+flex-1
+overflow-y-auto
+p-4
+space-y-4
+bg-gray-50
 
-                      "
+"
 
-                    >
+>
 
-                      {
+{
 
-                        msg.recommendations.map(
+messages.map(
 
-                          vendor => (
+(
 
-                            <RecommendationCard
+msg,
+index
 
-                              key={
+)=>(
 
-                                vendor.vendor_id
+<div
 
-                              }
+key={index}
 
-                              vendor={
+className="
 
-                                vendor
+flex
+flex-col
 
-                              }
+"
 
-                            />
+>
 
-                          )
+<div
 
-                        )
+className={`
 
-                      }
+max-w-[80%]
+px-4
+py-3
+rounded-2xl
+whitespace-pre-wrap
+break-words
 
-                    </div>
+${
 
-                  )
+msg.role==="user"
 
-                }
+?
 
-              </div>
+"bg-blue-600 text-white ml-auto"
 
-            )
+:
 
-          )
+msg.role==="assistant"
 
-        }
+?
 
-        {
+"bg-white border text-gray-900"
 
-          loading && (
+:
 
-            <div
+"bg-red-100 text-red-700"
 
-              className="
+}
 
-              bg-gray-100
+`}
 
-              px-4
+>
 
-              py-3
+{
 
-              rounded-xl
+msg.text
 
-              text-gray-600
+}
 
-              animate-pulse
+</div>
 
-              w-fit
+{
 
-              "
+msg.role==="assistant"
 
-            >
+&&
 
-              AI is typing...
+msg.recommendations?.length>0
 
-            </div>
+&&(
 
-          )
+<div
 
-        }
+className="
 
-        <div
+mt-3
+space-y-3
 
-          ref={bottomRef}
+"
 
-        />
+>
 
-      </div>
+{
 
-      {
+msg.recommendations.map(
 
-        error && (
+vendor=>(
 
-          <div
+<RecommendationCard
 
-            className="
+key={
 
-            px-4
+vendor.vendor_id
 
-            py-2
+}
 
-            text-sm
+vendor={
 
-            text-red-600
+vendor
 
-            border-t
+}
 
-            bg-red-50
+/>
 
-            "
+)
 
-          >
+)
 
-            {error}
+}
 
-          </div>
+</div>
 
-        )
+)
 
-      }
+}
 
-      <div
+</div>
 
-        className="
+)
 
-        border-t
+)
 
-        p-3
+}
 
-        flex
 
-        gap-2
+{
 
-        bg-white
+loading
 
-        "
+&&(
 
-      >
+<div
 
-        <input
+className="
 
-          ref={inputRef}
+bg-white
+border
+px-4
+py-3
+rounded-2xl
+w-fit
+text-gray-500
 
-          value={input}
+"
 
-          maxLength={
+>
 
-            MAX_MESSAGE_LENGTH
+<div
 
-          }
+className="
 
-          onChange={
+flex
+gap-1
 
-            e =>
+"
 
-            setInput(
+>
 
-              e.target.value
+<div
 
-            )
+className="
 
-          }
+w-2
+h-2
+rounded-full
+bg-gray-400
+animate-bounce
 
-          onKeyDown={
+"
 
-            handleKeyDown
+/>
 
-          }
+<div
 
-          disabled={
+className="
 
-            loading
+w-2
+h-2
+rounded-full
+bg-gray-400
+animate-bounce
 
-          }
+"
 
-          placeholder="Ask vendor related questions..."
+style={{
 
-          className="
+animationDelay:"0.15s"
 
-          flex-1
+}}
 
-          border
+/>
 
-          rounded-lg
+<div
 
-          px-3
+className="
 
-          py-2
+w-2
+h-2
+rounded-full
+bg-gray-400
+animate-bounce
 
-          outline-none
+"
 
-          focus:ring-2
+style={{
 
-          focus:ring-blue-500
+animationDelay:"0.3s"
 
-          disabled:bg-gray-100
+}}
 
-          "
+/>
 
-        />
+</div>
 
-        <button
+</div>
 
-          onClick={
+)
 
-            handleSend
+}
 
-          }
+<div
 
-          disabled={
+ref={bottomRef}
 
-            loading ||
+/>
 
-            !input.trim()
+</div>
 
-          }
 
-          className="
+{
 
-          bg-blue-600
+error
 
-          text-white
+&&(
 
-          px-5
+<div
 
-          py-2
+className="
 
-          rounded-lg
+px-4
+py-2
+text-sm
+text-red-600
+bg-red-50
+border-t
 
-          disabled:bg-gray-400
+"
 
-          transition
+>
 
-          "
+{
 
-        >
+error
 
-          {
+}
 
-            loading
+</div>
 
-            ?
+)
 
-            "Sending..."
+}
 
-            :
 
-            "Send"
+<div
 
-          }
+className="
 
-        </button>
+border-t
+bg-white
+p-3
+flex
+gap-2
 
-      </div>
+"
 
-    </div>
+>
 
-  );
+<textarea
+
+ref={inputRef}
+
+value={input}
+
+maxLength={
+
+MAX_MESSAGE_LENGTH
+
+}
+
+rows={1}
+
+onChange={
+
+e=>
+
+setInput(
+
+e.target.value
+
+)
+
+}
+
+onKeyDown={
+
+handleKeyDown
+
+}
+
+disabled={
+
+loading
+
+}
+
+placeholder="Describe your event requirements..."
+
+className="
+
+flex-1
+border
+rounded-xl
+px-4
+py-3
+resize-none
+outline-none
+focus:ring-2
+focus:ring-blue-500
+disabled:bg-gray-100
+
+"
+
+/>
+
+
+<button
+
+onClick={
+
+handleSend
+
+}
+
+disabled={
+
+loading
+
+||
+
+!input.trim()
+
+}
+
+className="
+
+bg-blue-600
+text-white
+px-5
+rounded-xl
+disabled:bg-gray-400
+transition
+
+"
+
+>
+
+{
+
+loading
+
+?
+
+"..."
+
+:
+
+"Send"
+
+}
+
+</button>
+
+</div>
+
+</div>
+
+);
 
 };
 

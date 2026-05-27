@@ -1,7 +1,5 @@
-import React, {
-
+import React,{
 memo
-
 } from "react";
 
 
@@ -9,9 +7,9 @@ function RecommendationCard({
 
 vendor
 
-}) {
+}){
 
-const name =
+const name=
 
 vendor?.name
 
@@ -20,7 +18,7 @@ vendor?.name
 "Unknown Vendor";
 
 
-const city =
+const city=
 
 vendor?.city
 
@@ -29,44 +27,56 @@ vendor?.city
 "Location unavailable";
 
 
-const rating =
+const rating=
 
 typeof vendor?.rating
 
-=== "number"
+===
+
+"number"
 
 ?
 
-vendor.rating.toFixed(1)
+vendor.rating.toFixed(
+
+1
+
+)
 
 :
 
 "N/A";
 
 
-const description =
+const description=
 
 vendor?.description?.trim()
 
 ||
 
-"No description available";
+"";
 
 
-const hasPricing =
+const hasPricing=(
 
 vendor?.price_min
 
-!= null
+!=
+
+null
 
 &&
 
 vendor?.price_max
 
-!= null;
+!=
+
+null
+
+);
 
 
-const pricing =
+const pricing=
 
 hasPricing
 
@@ -79,7 +89,84 @@ hasPricing
 "Pricing unavailable";
 
 
-return (
+const rawServices=
+
+Array.isArray(
+
+vendor?.services
+
+)
+
+?
+
+vendor.services
+
+:
+
+[];
+
+
+const categoryServices=
+
+rawServices.flatMap(
+
+item=>{
+
+if(
+
+typeof item==="string"
+
+){
+
+return[
+
+item
+
+];
+
+}
+
+if(
+
+item?.services
+
+&&
+
+Array.isArray(
+
+item.services
+
+)
+
+){
+
+return item.services;
+
+}
+
+return[];
+
+}
+
+);
+
+
+const services=[
+
+...new Set(
+
+categoryServices.filter(
+
+Boolean
+
+)
+
+)
+
+];
+
+
+return(
 
 <div
 
@@ -87,21 +174,21 @@ className="
 
 border
 
-rounded-xl
+rounded-2xl
 
 p-4
 
-shadow-sm
-
 bg-white
 
-mb-3
+shadow-sm
 
 hover:shadow-md
 
-transition-shadow
+transition-all
 
 duration-200
+
+mb-3
 
 "
 
@@ -143,6 +230,8 @@ text-lg
 
 truncate
 
+text-gray-900
+
 "
 
 title={name}
@@ -157,9 +246,9 @@ title={name}
 
 className="
 
-text-gray-500
-
 text-sm
+
+text-gray-500
 
 truncate
 
@@ -181,6 +270,8 @@ text-yellow-500
 
 font-medium
 
+text-sm
+
 whitespace-nowrap
 
 "
@@ -193,7 +284,16 @@ whitespace-nowrap
 
 </div>
 
-<div
+
+{
+
+description
+
+&&
+
+(
+
+<p
 
 className="
 
@@ -203,7 +303,7 @@ text-sm
 
 text-gray-700
 
-break-words
+leading-relaxed
 
 "
 
@@ -211,15 +311,145 @@ break-words
 
 {description}
 
-</div>
+</p>
+
+)
+
+}
+
+
+{
+
+services.length>0
+
+&&
+
+(
 
 <div
 
 className="
 
-mt-3
+mt-4
+
+"
+
+>
+
+<p
+
+className="
+
+text-sm
 
 font-medium
+
+text-gray-800
+
+mb-2
+
+"
+
+>
+
+Services
+
+</p>
+
+<div
+
+className="
+
+flex
+
+flex-wrap
+
+gap-2
+
+"
+
+>
+
+{
+
+services.map(
+
+(
+
+service,
+
+index
+
+)=>(
+
+<span
+
+key={`${service}-${index}`}
+
+className="
+
+px-3
+
+py-1
+
+rounded-full
+
+bg-blue-50
+
+text-blue-700
+
+text-xs
+
+font-medium
+
+"
+
+>
+
+{service}
+
+</span>
+
+)
+
+)
+
+}
+
+</div>
+
+</div>
+
+)
+
+}
+
+
+<div
+
+className="
+
+mt-4
+
+pt-3
+
+border-t
+
+flex
+
+justify-between
+
+items-center
+
+"
+
+>
+
+<p
+
+className="
+
+font-semibold
 
 text-blue-700
 
@@ -228,6 +458,8 @@ text-blue-700
 >
 
 {pricing}
+
+</p>
 
 </div>
 

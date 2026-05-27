@@ -1,324 +1,361 @@
 import axiosInstance from "./axiosInstance";
 
 
-const REQUEST_TIMEOUT = 35000;
+const REQUEST_TIMEOUT=35000;
 
-const MAX_RETRIES = 1;
+const MAX_RETRIES=1;
+
+let activeController=null;
 
 
-const sleep = (
+const sleep=(
 
-    ms
+ms
 
-) =>
+)=>
 
 new Promise(
 
-    resolve =>
+resolve=>
 
-    setTimeout(
+setTimeout(
 
-        resolve,
+resolve,
 
-        ms
+ms
 
-    )
+)
 
 );
 
 
-const normalizeError = (
+const normalizeResponse=(
 
-    error
+data
 
-) => {
+)=>({
 
-    if (
+success:
 
-        error?.response
+Boolean(
 
-    ) {
+data?.success
 
-        return {
+),
 
-            success:false,
+message:
 
-            message:"",
+data?.message
 
-            recommendations:[],
+||
 
-            error:
+"",
 
-            error.response
+session_id:
 
-            .data?.error
+data?.session_id
 
-            ||
+||
 
-            error.response
+null,
 
-            .data?.detail
+recommendations:
 
-            ||
+Array.isArray(
 
-            "Backend error"
+data?.recommendations
 
-        };
+)
 
-    }
+?
 
-    if (
+data.recommendations
 
-        error?.code
+:
 
-        ===
+[],
 
-        "ECONNABORTED"
+error:
 
-    ) {
+data?.error
 
-        return {
+||
 
-            success:false,
+null
 
-            message:"",
+});
 
-            recommendations:[],
 
-            error:
+const normalizeError=(
 
-            "Request timeout. Please try again."
+error
 
-        };
+)=>{
 
-    }
+if(
 
-    if (
+error?.name
 
-        error?.name
+===
 
-        ===
+"CanceledError"
 
-        "CanceledError"
+||
 
-    ) {
+error?.code
 
-        return {
+===
 
-            success:false,
+"ERR_CANCELED"
 
-            message:"",
+){
 
-            recommendations:[],
+return{
 
-            error:
+success:false,
 
-            "Request cancelled"
+message:"",
 
-        };
+recommendations:[],
 
-    }
+error:"Previous request cancelled."
 
-    return {
+};
 
-        success:false,
+}
 
-        message:"",
+if(
 
-        recommendations:[],
+error?.code
 
-        error:
+===
 
-        "Network error. Please check your internet connection."
+"ECONNABORTED"
 
-    };
+){
+
+return{
+
+success:false,
+
+message:"",
+
+recommendations:[],
+
+error:
+
+"Request timed out. Please try again."
+
+};
+
+}
+
+if(
+
+error?.response
+
+){
+
+return{
+
+success:false,
+
+message:"",
+
+recommendations:[],
+
+error:
+
+error.response.data?.error
+
+||
+
+error.response.data?.detail
+
+||
+
+"Backend error"
+
+};
+
+}
+
+return{
+
+success:false,
+
+message:"",
+
+recommendations:[],
+
+error:
+
+"Unable to connect. Check internet connection."
+
+};
 
 };
 
 
-const validateResponse = (
+export const sendMessage=async(
 
-    data
+message,
 
-) => {
+sessionId,
 
-    return {
+retry=0
 
-        success:
+)=>{
 
-        Boolean(
+try{
 
-            data?.success
+if(
 
-        ),
+activeController
 
-        message:
+){
 
-        data?.message
+activeController.abort();
 
-        ||
+}
 
-        "",
+activeController=
 
-        session_id:
+new AbortController();
 
-        data?.session_id
+const response=
 
-        ||
+await axiosInstance.post(
 
-        null,
+"/chat/message",
 
-        recommendations:
+{
 
-        Array.isArray(
+message,
 
-            data?.recommendations
+session_id:
 
-        )
+sessionId
 
-        ?
+},
 
-        data.recommendations
+{
 
-        :
+timeout:
 
-        [],
+REQUEST_TIMEOUT,
 
-        error:
+signal:
 
-        data?.error
+activeController.signal
 
-        ||
+}
 
-        null
+);
 
-    };
+activeController=null;
+
+return normalizeResponse(
+
+response.data
+
+);
+
+}
+
+catch(
+
+error
+
+){
+
+console.error(
+
+"Chat API Error:",
+
+error
+
+);
+
+const retryAllowed=(
+
+retry
+
+<
+
+MAX_RETRIES
+
+&&
+
+!error.response
+
+&&
+
+error.code
+
+!==
+
+"ECONNABORTED"
+
+&&
+
+error.code
+
+!==
+
+"ERR_CANCELED"
+
+);
+
+if(
+
+retryAllowed
+
+){
+
+await sleep(
+
+700
+
+);
+
+return sendMessage(
+
+message,
+
+sessionId,
+
+retry+1
+
+);
+
+}
+
+activeController=null;
+
+return normalizeError(
+
+error
+
+);
+
+}
 
 };
 
 
-export const sendMessage = async (
+export const cancelActiveRequest=()=>{
 
-    message,
+if(
 
-    sessionId,
+activeController
 
-    retry = 0
+){
 
-) => {
+activeController.abort();
 
-    const controller =
+activeController=null;
 
-    new AbortController();
-
-    try {
-
-        const response = await (
-
-            axiosInstance.post(
-
-                "/chat/message",
-
-                {
-
-                    message,
-
-                    session_id:
-
-                    sessionId
-
-                },
-
-                {
-
-                    timeout:
-
-                    REQUEST_TIMEOUT,
-
-                    signal:
-
-                    controller.signal
-
-                }
-
-            )
-
-        );
-
-        return validateResponse(
-
-            response.data
-
-        );
-
-    }
-
-    catch (
-
-        error
-
-    ) {
-
-        console.error(
-
-            "Chat API Error:",
-
-            error
-
-        );
-
-        const shouldRetry = (
-
-            retry
-
-            <
-
-            MAX_RETRIES
-
-            &&
-
-            !error.response
-
-            &&
-
-            error.code
-
-            !==
-
-            "ECONNABORTED"
-
-        );
-
-        if (
-
-            shouldRetry
-
-        ) {
-
-            await sleep(
-
-                500
-
-            );
-
-            return sendMessage(
-
-                message,
-
-                sessionId,
-
-                retry+1
-
-            );
-
-        }
-
-        return normalizeError(
-
-            error
-
-        );
-
-    }
+}
 
 };
