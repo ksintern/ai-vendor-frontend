@@ -41,6 +41,9 @@ from "../pages/Settings/SettingsPage";
 import EditProfilePage
 from "../pages/EditProfile/EditProfilePage";
 
+import ChatPage
+from "../pages/Chat/ChatPage";
+
 import ProtectedRoute
 from "../components/auth/ProtectedRoute/ProtectedRoute";
 
@@ -376,6 +379,33 @@ allowedRoles={[
 
 <Route
 
+path="/vendors"
+
+element={
+
+<ProtectedRoute
+
+allowedRoles={[
+
+"admin",
+"vendor",
+"user"
+
+]}
+
+>
+
+<VendorDetailsPage/>
+
+</ProtectedRoute>
+
+}
+
+/>
+
+
+<Route
+
 path="/vendors/:vendorId"
 
 element={
@@ -497,6 +527,33 @@ allowedRoles={[
 >
 
 <SettingsPage/>
+
+</ProtectedRoute>
+
+}
+
+/>
+
+
+<Route
+
+path="/chat"
+
+element={
+
+<ProtectedRoute
+
+allowedRoles={[
+
+"admin",
+"user",
+"vendor"
+
+]}
+
+>
+
+<ChatPage/>
 
 </ProtectedRoute>
 

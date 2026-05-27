@@ -11,38 +11,27 @@ Star,
 TrendingUp
 } from "lucide-react";
 
-import axiosInstance
-from "../../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
-import MainLayout
-from "../../components/layouts/MainLayout/MainLayout";
+import MainLayout from "../../components/layouts/MainLayout/MainLayout";
 
-import VendorFilters
-from "../../components/vendor/VendorFilters/VendorFilters";
+import VendorFilters from "../../components/vendor/VendorFilters/VendorFilters";
 
-import VendorCard
-from "../../components/vendor/VendorCard/VendorCard";
+import VendorCard from "../../components/vendor/VendorCard/VendorCard";
 
-import VendorDetails
-from "../../components/vendor/VendorDetails/VendorDetails";
+import VendorDetails from "../../components/vendor/VendorDetails/VendorDetails";
 
-import Loader
-from "../../components/common/Loader/Loader";
+import Loader from "../../components/common/Loader/Loader";
 
-import EmptyState
-from "../../components/common/EmptyState/EmptyState";
+import EmptyState from "../../components/common/EmptyState/EmptyState";
 
-import Pagination
-from "../../components/common/Pagination/Pagination";
+import Pagination from "../../components/common/Pagination/Pagination";
 
-import Modal
-from "../../components/common/Modal/Modal";
+import Modal from "../../components/common/Modal/Modal";
 
-import PageHeader
-from "../../components/common/PageHeader/PageHeader";
+import PageHeader from "../../components/common/PageHeader/PageHeader";
 
-import KpiCard
-from "../../components/common/KpiCard/KpiCard";
+import KpiCard from "../../components/common/KpiCard/KpiCard";
 
 
 const VendorDetailsPage=()=>{
@@ -82,6 +71,11 @@ totalPages,
 setTotalPages
 ]=useState(1);
 
+const[
+searched,
+setSearched
+]=useState(false);
+
 const limit=9;
 
 const[
@@ -105,8 +99,6 @@ availability:""
 useEffect(()=>{
 
 fetchVendorCategories();
-
-fetchVendors(1);
 
 },[]);
 
@@ -184,11 +176,9 @@ currentPage=1
 
 try{
 
-setLoading(
+setLoading(true);
 
-true
-
-);
+setSearched(true);
 
 const response=
 
@@ -320,11 +310,7 @@ error
 
 finally{
 
-setLoading(
-
-false
-
-);
+setLoading(false);
 
 }
 
@@ -351,13 +337,7 @@ await axiosInstance.post(
 
 catch(error){
 
-console.log(
-
-"Track failed",
-
-error
-
-);
+console.log(error);
 
 }
 
@@ -447,13 +427,7 @@ item
 
 catch(error){
 
-console.log(
-
-"Save failed",
-
-error
-
-);
+console.log(error);
 
 }
 
@@ -476,11 +450,15 @@ availability:""
 
 });
 
-fetchVendors(
+setVendors([]);
 
-1
+setPage(1);
 
-);
+setTotalPages(1);
+
+setTotalResults(0);
+
+setSearched(false);
 
 };
 
@@ -538,15 +516,11 @@ const stats=[
 
 title:"Vendors",
 
-value:
-
-totalResults,
+value:totalResults,
 
 icon:<Building2/>,
 
-color:
-
-"bg-blue-100"
+color:"bg-blue-100"
 
 },
 
@@ -554,15 +528,11 @@ color:
 
 title:"Categories",
 
-value:
-
-categories.length,
+value:categories.length,
 
 icon:<Users/>,
 
-color:
-
-"bg-purple-100"
+color:"bg-purple-100"
 
 },
 
@@ -570,15 +540,11 @@ color:
 
 title:"Avg Rating",
 
-value:
-
-averageRating,
+value:averageRating,
 
 icon:<Star/>,
 
-color:
-
-"bg-amber-100"
+color:"bg-amber-100"
 
 },
 
@@ -600,9 +566,7 @@ vendors.length
 
 icon:<TrendingUp/>,
 
-color:
-
-"bg-green-100"
+color:"bg-green-100"
 
 }
 
@@ -613,38 +577,20 @@ return(
 
 <MainLayout>
 
-<div
-
-className="space-y-8"
-
->
+<div className="space-y-8">
 
 <PageHeader
 
-title=
+title="Vendor Marketplace"
 
-"Vendor Marketplace"
-
-subtitle=
-
-"Search vendors compare pricing and analyze intelligence"
+subtitle="Search vendors compare pricing and analyze intelligence"
 
 />
 
 
 <div
 
-className="
-
-grid
-
-md:grid-cols-2
-
-xl:grid-cols-4
-
-gap-6
-
-"
+className="grid md:grid-cols-2 xl:grid-cols-4 gap-6"
 
 >
 
@@ -656,11 +602,7 @@ card=>(
 
 <KpiCard
 
-key={
-
-card.title
-
-}
+key={card.title}
 
 {...card}
 
@@ -685,11 +627,7 @@ categories={categories}
 
 onSearch={()=>
 
-fetchVendors(
-
-1
-
-)
+fetchVendors(1)
 
 }
 
@@ -708,33 +646,41 @@ loading
 
 :
 
+!searched
+
+?
+
+<EmptyState
+
+title="Search Vendors"
+
+message="Apply filters and click search to discover vendors"
+
+buttonText="Search"
+
+onClick={()=>
+
+fetchVendors(1)
+
+}
+
+/>
+
+:
+
 vendors.length===0
 
 ?
 
 <EmptyState
 
-title=
+title="No Vendors Found"
 
-"No Vendors Found"
+message="Try adjusting filters and search again."
 
-message=
+buttonText="Reset"
 
-"Try adjusting filters or search again."
-
-buttonText=
-
-"Reload"
-
-onClick={()=>
-
-fetchVendors(
-
-1
-
-)
-
-}
+onClick={resetFilters}
 
 />
 
@@ -744,17 +690,7 @@ fetchVendors(
 
 <div
 
-className="
-
-grid
-
-xl:grid-cols-3
-
-lg:grid-cols-2
-
-gap-6
-
-"
+className="grid xl:grid-cols-3 lg:grid-cols-2 gap-6"
 
 >
 
@@ -766,35 +702,20 @@ vendor=>(
 
 <VendorCard
 
-key={
+key={vendor.vendor_id}
 
-vendor.vendor_id
-
-}
-
-vendor={
-
-vendor
-
-}
+vendor={vendor}
 
 onView={()=>
 
-openVendor(
-
-vendor
-
-)
+openVendor(vendor)
 
 }
 
 onSave={()=>
 
-saveVendor(
+saveVendor(vendor)
 
-vendor
-
-)
 }
 
 />
@@ -810,23 +731,11 @@ vendor
 
 <Pagination
 
-currentPage={
+currentPage={page}
 
-page
+totalPages={totalPages}
 
-}
-
-totalPages={
-
-totalPages
-
-}
-
-onPageChange={
-
-fetchVendors
-
-}
+onPageChange={fetchVendors}
 
 />
 
@@ -837,25 +746,15 @@ fetchVendors
 
 <Modal
 
-isOpen={
-
-!!selectedVendor
-
-}
+isOpen={!!selectedVendor}
 
 onClose={()=>
 
-setSelectedVendor(
-
-null
-
-)
+setSelectedVendor(null)
 
 }
 
-title=
-
-"Vendor Details"
+title="Vendor Details"
 
 size="lg"
 
@@ -867,11 +766,7 @@ selectedVendor&&(
 
 <VendorDetails
 
-vendor={
-
-selectedVendor
-
-}
+vendor={selectedVendor}
 
 />
 

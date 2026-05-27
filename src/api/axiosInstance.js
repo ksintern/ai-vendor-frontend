@@ -1,46 +1,46 @@
 import axios from "axios";
 
-
-// ====================================
-// ACCESS TOKEN MEMORY
-// ====================================
-
 let accessToken = null;
-
-
-// ====================================
-// REFRESH STATE
-// ====================================
 
 let isRefreshing = false;
 
 let failedQueue = [];
 
-
-// ====================================
-// PROCESS QUEUE
-// ====================================
+const API_TIMEOUT = 35000;
 
 const processQueue = (
 
 error,
+
 token = null
 
-)=>{
+) => {
 
 failedQueue.forEach(
 
-promise=>{
+promise => {
 
-if(error){
+if (
 
-promise.reject(error);
+error
+
+) {
+
+promise.reject(
+
+error
+
+);
 
 }
 
-else{
+else {
 
-promise.resolve(token);
+promise.resolve(
+
+token
+
+);
 
 }
 
@@ -48,40 +48,30 @@ promise.resolve(token);
 
 );
 
-failedQueue=[];
+failedQueue = [];
 
 };
 
 
-// ====================================
-// TOKEN HELPERS
-// ====================================
-
-export const setAccessToken=(
+export const setAccessToken = (
 
 token
 
-)=>{
+) => {
 
-accessToken=token;
-
-};
-
-
-export const clearAccessToken=()=>{
-
-accessToken=null;
+accessToken = token;
 
 };
 
 
-// ====================================
-// AXIOS INSTANCE
-// ====================================
+export const clearAccessToken = () => {
 
-const axiosInstance=
+accessToken = null;
 
-axios.create({
+};
+
+
+const axiosInstance = axios.create({
 
 baseURL:
 
@@ -91,22 +81,24 @@ import.meta.env
 
 withCredentials:true,
 
-timeout:15000
+timeout:
+
+API_TIMEOUT
 
 });
 
 
-// ====================================
-// REQUEST INTERCEPTOR
-// ====================================
-
 axiosInstance.interceptors.request.use(
 
-config=>{
+config => {
 
-if(accessToken){
+if (
 
-config.headers.Authorization=
+accessToken
+
+) {
+
+config.headers.Authorization =
 
 `Bearer ${accessToken}`;
 
@@ -116,51 +108,76 @@ return config;
 
 },
 
-error=>Promise.reject(error)
+error =>
+
+Promise.reject(
+
+error
+
+)
 
 );
 
 
-// ====================================
-// RESPONSE INTERCEPTOR
-// ====================================
-
 axiosInstance.interceptors.response.use(
 
-response=>response,
+response =>
 
-async error=>{
+response,
 
-const originalRequest=
+async error => {
 
-error.config;
+const originalRequest =
+
+error?.config;
 
 
-// NETWORK
+if (
 
-if(
+error?.code ===
 
-!error.response
+"ECONNABORTED"
 
-){
+) {
 
 return Promise.reject(
 
-"Network error. Please check your internet connection."
+new Error(
+
+"Request timeout. Please try again."
+
+)
 
 );
 
 }
 
 
-const status=
+if (
+
+!error?.response
+
+) {
+
+return Promise.reject(
+
+new Error(
+
+"Backend unreachable."
+
+)
+
+);
+
+}
+
+
+const status =
 
 error.response.status;
 
 
-// LOGIN FAILURE
-
-if(
+if (
 
 originalRequest?.url?.includes(
 
@@ -168,16 +185,18 @@ originalRequest?.url?.includes(
 
 )
 
-){
+) {
 
-return Promise.reject(error);
+return Promise.reject(
+
+error
+
+);
 
 }
 
 
-// REFRESH FAILED
-
-if(
+if (
 
 originalRequest?.url?.includes(
 
@@ -185,49 +204,53 @@ originalRequest?.url?.includes(
 
 )
 
-){
+) {
 
 clearAccessToken();
 
 return Promise.reject(
 
+new Error(
+
 "Session expired"
+
+)
 
 );
 
 }
 
 
-// HANDLE 401
+if (
 
-if(
-
-status===401
+status === 401
 
 &&
 
 !originalRequest._retry
 
-){
+) {
 
-if(
+if (
 
 isRefreshing
 
-){
+) {
 
 return new Promise(
 
 (
 
 resolve,
+
 reject
 
-)=>{
+) => {
 
 failedQueue.push({
 
 resolve,
+
 reject
 
 });
@@ -238,9 +261,9 @@ reject
 
 .then(
 
-token=>{
+token => {
 
-originalRequest.headers.Authorization=
+originalRequest.headers.Authorization =
 
 `Bearer ${token}`;
 
@@ -257,14 +280,13 @@ originalRequest
 }
 
 
-originalRequest._retry=true;
+originalRequest._retry = true;
 
-isRefreshing=true;
+isRefreshing = true;
 
+try {
 
-try{
-
-const refresh=
+const refresh =
 
 await axios.post(
 
@@ -280,27 +302,36 @@ import.meta.env
 
 {
 
-withCredentials:true
+withCredentials:true,
+
+timeout:
+
+API_TIMEOUT
 
 }
 
 );
 
+const newToken =
 
-const newToken=
+refresh.data?.data?.access_token
 
-refresh.data?.data?.access_token||
+||
 
 refresh.data?.access_token;
 
 
-if(
+if (
 
 !newToken
 
-){
+) {
 
-throw Error();
+throw new Error(
+
+"No access token returned"
+
+);
 
 }
 
@@ -311,7 +342,6 @@ newToken
 
 );
 
-
 processQueue(
 
 null,
@@ -320,11 +350,9 @@ newToken
 
 );
 
-
-originalRequest.headers.Authorization=
+originalRequest.headers.Authorization =
 
 `Bearer ${newToken}`;
-
 
 return axiosInstance(
 
@@ -334,7 +362,11 @@ originalRequest
 
 }
 
-catch(refreshError){
+catch (
+
+refreshError
+
+) {
 
 processQueue(
 
@@ -348,35 +380,53 @@ clearAccessToken();
 
 return Promise.reject(
 
+new Error(
+
 "Session expired"
+
+)
 
 );
 
 }
 
-finally{
+finally {
 
-isRefreshing=false;
-
-}
+isRefreshing = false;
 
 }
 
+}
 
-const apiMessage=
 
-error.response?.data?.message||
+const apiMessage =
 
-error.response?.data?.detail||
+error.response?.data?.message
 
-error.response?.data?.error?.details?.[0]?.message||
+||
+
+error.response?.data?.detail
+
+||
+
+error.response?.data?.error
+
+||
+
+error.response?.data?.error?.details?.[0]?.message
+
+||
 
 "Something went wrong";
 
 
 return Promise.reject(
 
+new Error(
+
 apiMessage
+
+)
 
 );
 
