@@ -1,7 +1,7 @@
 import axiosInstance from "./axiosInstance";
 
 
-const REQUEST_TIMEOUT=35000;
+const REQUEST_TIMEOUT=180000;
 
 const MAX_RETRIES=1;
 
