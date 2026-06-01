@@ -256,24 +256,6 @@ sessionId
 
 if(
 
-result?.session_id
-
-&&
-
-result.session_id!==sessionId
-
-){
-
-setSessionId(
-
-result.session_id
-
-);
-
-}
-
-if(
-
 result?.success
 
 ){
@@ -296,6 +278,30 @@ result.recommendations
 
 ||
 
+[],
+
+responseType:
+
+result.response_type
+
+||
+
+"chat",
+
+currentQuestion:
+
+result.current_question
+
+||
+
+null,
+
+missingFields:
+
+result.missing_fields
+
+||
+
 []
 
 });
@@ -314,7 +320,11 @@ result?.error
 
 ||
 
-"Unable to process request."
+"Unable to process request.",
+
+responseType:
+
+"error"
 
 });
 
@@ -466,6 +476,22 @@ msg.role==="assistant"
 
 ?
 
+msg.responseType==="followup"
+
+?
+
+"bg-yellow-50 border border-yellow-300 text-gray-900"
+
+:
+
+msg.responseType==="recommendation"
+
+?
+
+"bg-green-50 border border-green-300 text-gray-900"
+
+:
+
 "bg-white border text-gray-900"
 
 :
@@ -481,6 +507,48 @@ msg.role==="assistant"
 {
 
 msg.text
+
+}
+
+{
+
+msg.responseType==="followup"
+
+&&
+
+msg.missingFields?.length > 0
+
+&&
+
+(
+
+<div
+
+className="
+
+mt-2
+text-xs
+text-yellow-700
+
+"
+
+>
+
+Required:
+
+{
+
+msg.missingFields.join(
+
+", "
+
+)
+
+}
+
+</div>
+
+)
 
 }
 

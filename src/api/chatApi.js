@@ -1,361 +1,425 @@
 import axiosInstance from "./axiosInstance";
 
 
-const REQUEST_TIMEOUT=180000;
+const REQUEST_TIMEOUT = 180000;
 
-const MAX_RETRIES=1;
+const MAX_RETRIES = 1;
 
-let activeController=null;
-
-
-const sleep=(
-
-ms
-
-)=>
-
-new Promise(
-
-resolve=>
-
-setTimeout(
-
-resolve,
-
-ms
-
-)
-
-);
+let activeController = null;
 
 
-const normalizeResponse=(
+const sleep = (
 
-data
+    ms
 
-)=>({
+) =>
 
-success:
+    new Promise(
 
-Boolean(
+        resolve =>
 
-data?.success
+            setTimeout(
 
-),
+                resolve,
 
-message:
+                ms
 
-data?.message
+            )
 
-||
+    );
 
-"",
 
-session_id:
+const normalizeResponse = (
 
-data?.session_id
+    data
 
-||
+) => ({
 
-null,
+    success:
 
-recommendations:
+        Boolean(
 
-Array.isArray(
+            data?.success
 
-data?.recommendations
+        ),
 
-)
+    message:
 
-?
+        data?.message
 
-data.recommendations
+        ||
 
-:
+        "",
 
-[],
+    session_id:
 
-error:
+        data?.session_id
 
-data?.error
+        ||
 
-||
+        null,
 
-null
+    response_type:
+
+        data?.response_type
+
+        ||
+
+        "chat",
+
+    current_question:
+
+        data?.current_question
+
+        ||
+
+        null,
+
+    missing_fields:
+
+        Array.isArray(
+
+            data?.missing_fields
+
+        )
+
+            ?
+
+            data.missing_fields
+
+            :
+
+            [],
+
+    recommendations:
+
+        Array.isArray(
+
+            data?.recommendations
+
+        )
+
+            ?
+
+            data.recommendations
+
+            :
+
+            [],
+
+    error:
+
+        data?.error
+
+        ||
+
+        null
 
 });
 
 
-const normalizeError=(
+const normalizeError = (
 
-error
+    error
 
-)=>{
+) => {
 
-if(
+    if (
 
-error?.name
+        error?.name
 
-===
+        ===
 
-"CanceledError"
+        "CanceledError"
 
-||
+        ||
 
-error?.code
+        error?.code
 
-===
+        ===
 
-"ERR_CANCELED"
+        "ERR_CANCELED"
 
-){
+    ) {
 
-return{
+        return {
 
-success:false,
+            success: false,
 
-message:"",
+            message: "",
 
-recommendations:[],
+            session_id: null,
 
-error:"Previous request cancelled."
+            response_type: "error",
 
-};
+            current_question: null,
 
-}
+            missing_fields: [],
 
-if(
+            recommendations: [],
 
-error?.code
+            error: "Previous request cancelled."
 
-===
+        };
 
-"ECONNABORTED"
+    }
 
-){
+    if (
 
-return{
+        error?.code
 
-success:false,
+        ===
 
-message:"",
+        "ECONNABORTED"
 
-recommendations:[],
+    ) {
 
-error:
+        return {
 
-"Request timed out. Please try again."
+            success: false,
 
-};
+            message: "",
 
-}
+            session_id: null,
 
-if(
+            response_type: "error",
 
-error?.response
+            current_question: null,
 
-){
+            missing_fields: [],
 
-return{
+            recommendations: [],
 
-success:false,
+            error:
 
-message:"",
+                "Request timed out. Please try again."
 
-recommendations:[],
+        };
 
-error:
+    }
 
-error.response.data?.error
+    if (
 
-||
+        error?.response
 
-error.response.data?.detail
+    ) {
 
-||
+        return {
 
-"Backend error"
+            success: false,
 
-};
+            message: "",
 
-}
+            session_id: null,
 
-return{
+            response_type: "error",
 
-success:false,
+            current_question: null,
 
-message:"",
+            missing_fields: [],
 
-recommendations:[],
+            recommendations: [],
 
-error:
+            error:
 
-"Unable to connect. Check internet connection."
+                error.response.data?.error
 
-};
+                ||
 
-};
+                error.response.data?.detail
 
+                ||
 
-export const sendMessage=async(
+                "Backend error"
 
-message,
+        };
 
-sessionId,
+    }
 
-retry=0
+    return {
 
-)=>{
+        success: false,
 
-try{
+        message: "",
 
-if(
+        session_id: null,
 
-activeController
+        response_type: "error",
 
-){
+        current_question: null,
 
-activeController.abort();
+        missing_fields: [],
 
-}
+        recommendations: [],
 
-activeController=
+        error:
 
-new AbortController();
+            "Unable to connect. Check internet connection."
 
-const response=
-
-await axiosInstance.post(
-
-"/chat/message",
-
-{
-
-message,
-
-session_id:
-
-sessionId
-
-},
-
-{
-
-timeout:
-
-REQUEST_TIMEOUT,
-
-signal:
-
-activeController.signal
-
-}
-
-);
-
-activeController=null;
-
-return normalizeResponse(
-
-response.data
-
-);
-
-}
-
-catch(
-
-error
-
-){
-
-console.error(
-
-"Chat API Error:",
-
-error
-
-);
-
-const retryAllowed=(
-
-retry
-
-<
-
-MAX_RETRIES
-
-&&
-
-!error.response
-
-&&
-
-error.code
-
-!==
-
-"ECONNABORTED"
-
-&&
-
-error.code
-
-!==
-
-"ERR_CANCELED"
-
-);
-
-if(
-
-retryAllowed
-
-){
-
-await sleep(
-
-700
-
-);
-
-return sendMessage(
-
-message,
-
-sessionId,
-
-retry+1
-
-);
-
-}
-
-activeController=null;
-
-return normalizeError(
-
-error
-
-);
-
-}
+    };
 
 };
 
 
-export const cancelActiveRequest=()=>{
+export const sendMessage = async (
 
-if(
+    message,
 
-activeController
+    sessionId,
 
-){
+    retry = 0
 
-activeController.abort();
+) => {
 
-activeController=null;
+    try {
 
-}
+        if (
+
+            activeController
+
+        ) {
+
+            activeController.abort();
+
+        }
+
+        activeController =
+
+            new AbortController();
+
+        const response =
+
+            await axiosInstance.post(
+
+                "/chat/message",
+
+                {
+
+                    message,
+
+                    session_id:
+
+                        sessionId
+
+                },
+
+                {
+
+                    timeout:
+
+                        REQUEST_TIMEOUT,
+
+                    signal:
+
+                        activeController.signal
+
+                }
+
+            );
+
+        activeController = null;
+
+        return normalizeResponse(
+
+            response.data
+
+        );
+
+    }
+
+    catch (
+
+        error
+
+    ) {
+
+        console.error(
+
+            "Chat API Error:",
+
+            error
+
+        );
+
+        const retryAllowed = (
+
+            retry
+
+            <
+
+            MAX_RETRIES
+
+            &&
+
+            !error.response
+
+            &&
+
+            error.code
+
+            !==
+
+            "ECONNABORTED"
+
+            &&
+
+            error.code
+
+            !==
+
+            "ERR_CANCELED"
+
+        );
+
+        if (
+
+            retryAllowed
+
+        ) {
+
+            await sleep(
+
+                700
+
+            );
+
+            return sendMessage(
+
+                message,
+
+                sessionId,
+
+                retry + 1
+
+            );
+
+        }
+
+        activeController = null;
+
+        return normalizeError(
+
+            error
+
+        );
+
+    }
+
+};
+
+
+export const cancelActiveRequest = () => {
+
+    if (
+
+        activeController
+
+    ) {
+
+        activeController.abort();
+
+        activeController = null;
+
+    }
 
 };
