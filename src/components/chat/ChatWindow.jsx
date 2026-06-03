@@ -185,6 +185,23 @@ message
 
 );
 
+const handleNewChat = () => {
+
+    setMessages([
+        WELCOME_MESSAGE
+    ]);
+
+    setSessionId(null);
+
+    localStorage.removeItem(
+        STORAGE_KEY
+    );
+
+    setInput("");
+
+    setError(null);
+
+};
 
 const handleSend=async()=>{
 
@@ -421,6 +438,43 @@ overflow-hidden
 "
 
 >
+
+<div
+className="
+flex
+justify-between
+items-center
+px-4
+py-3
+border-b
+bg-white
+"
+>
+
+<h2
+className="
+font-semibold
+text-lg
+"
+>
+AI Vendor Assistant
+</h2>
+
+<button
+onClick={handleNewChat}
+className="
+px-3
+py-2
+text-sm
+bg-gray-100
+rounded-lg
+hover:bg-gray-200
+"
+>
++ New Chat
+</button>
+
+</div>
 
 <div
 
