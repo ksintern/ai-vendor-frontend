@@ -260,6 +260,15 @@ result?.success
 
 ){
 
+    if (
+        result.session_id &&
+        result.session_id !== sessionId
+    ) {
+        setSessionId(
+            result.session_id
+        );
+    }
+
 appendMessage({
 
 role:"assistant",
