@@ -1,41 +1,181 @@
+import { useState } from "react";
+
 import ChatWindow from "../../components/chat/ChatWindow";
+
+import ChatHistorySidebar from "../../components/chat/ChatHistorySidebar";
 
 
 const ChatPage = () => {
 
-return(
+    const [
 
-<div
+        selectedSessionId,
 
-className="h-[calc(100vh-80px)] p-6"
+        setSelectedSessionId
 
->
+    ] = useState(null);
 
-<div
+    const [
 
-className="max-w-5xl mx-auto h-full"
+        refreshKey,
 
->
+        setRefreshKey
 
-<h1
+    ] = useState(0);
 
-className="text-2xl font-semibold mb-4"
+    const [
 
->
+        sidebarRefresh,
 
-AI Vendor Assistant
+        setSidebarRefresh
 
-</h1>
+    ] = useState(0);
 
-<ChatWindow/>
+    const [
 
-</div>
+        sidebarCollapsed,
 
-</div>
+        setSidebarCollapsed
 
-);
+    ] = useState(false);
+
+    const handleSessionSelect = (
+
+        sessionId
+
+    ) => {
+
+        setSelectedSessionId(
+
+            sessionId
+
+        );
+
+    };
+
+    const handleNewChat = () => {
+
+        setSelectedSessionId(
+
+            null
+
+        );
+
+        setRefreshKey(
+
+            prev => prev + 1
+        );
+
+        setSidebarRefresh(
+            prev => prev + 1
+        );
+
+    };
+
+    return (
+
+        <div
+
+            className="
+                h-[calc(100vh-80px)]
+                flex
+            "
+
+        >
+            <button
+
+                onClick={() =>
+                    setSidebarCollapsed(
+                        prev => !prev
+                    )
+                }
+
+                className="
+                    absolute
+                    top-4
+                    left-4
+                    z-50
+                    bg-white
+                    border
+                    rounded
+                    px-3
+                    py-2
+                    shadow
+                "
+
+            >
+
+                ☰
+
+            </button>
+
+            {
+
+                !sidebarCollapsed && (
+
+                    <ChatHistorySidebar
+
+                        refreshTrigger={
+                            sidebarRefresh
+                        }
+
+                        onSessionSelect={
+                            handleSessionSelect
+                        }
+
+                        onNewChat={
+                            handleNewChat
+                        }
+
+                        selectedSessionId={
+                            selectedSessionId
+                        }
+
+                    />
+
+                )
+
+            }
+
+            <div
+
+                className="
+                    flex-1
+                    p-6
+                "
+
+            >
+
+                <h1
+
+                    className="
+                        text-2xl
+                        font-semibold
+                        mb-4
+                    "
+
+                >
+
+                    AI Vendor Assistant
+
+                </h1>
+
+                <ChatWindow
+
+                    key={refreshKey}
+
+                    selectedSessionId={
+                        selectedSessionId
+                    }
+
+                />
+
+            </div>
+
+        </div>
+
+    );
 
 };
-
 
 export default ChatPage;

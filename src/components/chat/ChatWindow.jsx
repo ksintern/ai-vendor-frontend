@@ -13,6 +13,12 @@ sendMessage
 
 } from "../../api/chatApi";
 
+import {
+
+getSessionHistory
+
+} from "../../api/sessionApi";
+
 import RecommendationCard from "./RecommendationCard";
 
 
@@ -33,7 +39,11 @@ recommendations:[]
 };
 
 
-const ChatWindow=()=>{
+const ChatWindow=({
+
+selectedSessionId
+
+})=>{
 
 const [
 
@@ -153,6 +163,114 @@ sessionId
 [
 
 sessionId
+
+]
+
+);
+
+useEffect(
+
+()=>{
+
+const loadHistory=async()=>{
+
+if(
+
+!selectedSessionId
+
+){
+
+return;
+
+}
+
+try{
+
+const history=
+
+await getSessionHistory(
+
+selectedSessionId
+
+);
+
+const loadedMessages=[
+
+WELCOME_MESSAGE
+
+];
+
+history.forEach(
+
+item=>{
+
+loadedMessages.push({
+
+role:"user",
+
+text:
+
+item.user_message
+
+});
+
+loadedMessages.push({
+
+role:"assistant",
+
+text:
+
+item.ai_response,
+
+recommendations:[],
+
+responseType:"chat"
+
+});
+
+}
+
+);
+
+setMessages(
+
+loadedMessages
+
+);
+
+setSessionId(
+
+selectedSessionId
+
+);
+
+}
+
+catch(
+
+error
+
+){
+
+console.error(
+
+"Failed to load history",
+
+error
+
+);
+
+}
+
+};
+
+loadHistory();
+
+},
+
+[
+
+selectedSessionId
 
 ]
 
