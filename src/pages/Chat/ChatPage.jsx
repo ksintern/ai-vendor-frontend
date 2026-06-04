@@ -72,6 +72,10 @@ const ChatPage = () => {
 
     };
 
+    const handleSessionCreated = () => {
+        setSidebarRefresh(prev => prev + 1);
+    };
+
     return (
 
         <div
@@ -167,6 +171,8 @@ const ChatPage = () => {
                     selectedSessionId={
                         selectedSessionId
                     }
+
+                    onSessionCreated={handleSessionCreated}
 
                 />
 

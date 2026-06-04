@@ -41,7 +41,9 @@ recommendations:[]
 
 const ChatWindow=({
 
-selectedSessionId
+selectedSessionId,
+
+onSessionCreated
 
 })=>{
 
@@ -71,23 +73,9 @@ setLoading
 ]=useState(false);
 
 const [
-
-sessionId,
-setSessionId
-
-]=useState(
-
-localStorage.getItem(
-
-STORAGE_KEY
-
-)
-
-||
-
-null
-
-);
+    sessionId,
+    setSessionId
+] = useState(null);
 
 const [
 
@@ -137,143 +125,55 @@ inputRef.current?.focus();
 
 );
 
-
 useEffect(
-
-()=>{
-
-if(
-
-sessionId
-
-){
-
-localStorage.setItem(
-
-STORAGE_KEY,
-
-sessionId
-
-);
-
-}
-
-},
-
-[
-
-sessionId
-
-]
-
-);
-
-useEffect(
-
-()=>{
-
-const loadHistory=async()=>{
-
-if(
-
-!selectedSessionId
-
-){
-
-return;
-
-}
-
-try{
-
-const history=
-
-await getSessionHistory(
-
-selectedSessionId
-
-);
-
-const loadedMessages=[
-
-WELCOME_MESSAGE
-
-];
-
-history.forEach(
-
-item=>{
-
-loadedMessages.push({
-
-role:"user",
-
-text:
-
-item.user_message
-
-});
-
-loadedMessages.push({
-
-role:"assistant",
-
-text:
-
-item.ai_response,
-
-recommendations:[],
-
-responseType:"chat"
-
-});
-
-}
-
-);
-
-setMessages(
-
-loadedMessages
-
-);
-
-setSessionId(
-
-selectedSessionId
-
-);
-
-}
-
-catch(
-
-error
-
-){
-
-console.error(
-
-"Failed to load history",
-
-error
-
-);
-
-}
-
-};
-
-loadHistory();
-
-},
-
-[
-
-selectedSessionId
-
-]
-
+    ()=>{
+        // New chat — clear everything
+        if(selectedSessionId === null){
+            setMessages([WELCOME_MESSAGE]);
+            setSessionId(null);
+            localStorage.removeItem(STORAGE_KEY);
+            setInput("");
+            setError(null);
+            return;
+        }
+
+        // Load existing session history
+        const loadHistory=async()=>{
+            try{
+                const history=
+                await getSessionHistory(
+                    selectedSessionId
+                );
+                const loadedMessages=[
+                    WELCOME_MESSAGE
+                ];
+                history.forEach(
+                    item=>{
+                        loadedMessages.push({
+                            role:"user",
+                            text:item.user_message
+                        });
+                        loadedMessages.push({
+                            role:"assistant",
+                            text:item.ai_response,
+                            recommendations:[],
+                            responseType:"chat"
+                        });
+                    }
+                );
+                setMessages(loadedMessages);
+                setSessionId(selectedSessionId);
+            }
+            catch(error){
+                console.error(
+                    "Failed to load history",
+                    error
+                );
+            }
+        };
+        loadHistory();
+    },
+    [selectedSessionId]
 );
 
 
@@ -402,6 +302,10 @@ result?.success
         setSessionId(
             result.session_id
         );
+
+        if (!sessionId && onSessionCreated) {
+            onSessionCreated();
+        }
     }
 
 appendMessage({

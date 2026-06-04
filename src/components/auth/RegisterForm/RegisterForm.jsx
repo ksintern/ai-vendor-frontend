@@ -363,7 +363,7 @@ setSuccess(false);
 
 setMessage(
 
-error?.response?.data?.detail||
+error?.message ||
 
 "Registration failed"
 
@@ -839,8 +839,11 @@ message&&(
 )
 }
 
-<Button disabled={loading}>
-
+<button
+type="submit"
+disabled={loading}
+className="w-full bg-indigo-600 text-white py-4 rounded-2xl"
+>
 {
 loading
 ?
@@ -848,8 +851,7 @@ loading
 :
 "Create Account"
 }
-
-</Button>
+</button>
 
 <p className="text-center">
 
