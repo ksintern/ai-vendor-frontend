@@ -76,12 +76,9 @@ function RecommendationCard({
 
         "Recommended based on your requirements";
 
-    const relevanceScore =
-
-        vendor?.relevance_score
-
+    const matchScore =
+        vendor?.match_score
         ??
-
         0;
 
     const featuredBadge =
@@ -535,7 +532,7 @@ function RecommendationCard({
 
                 >
 
-                    Recommendation Score: {relevanceScore}%
+                    Match Score: {matchScore}%
 
                 </div>
 
