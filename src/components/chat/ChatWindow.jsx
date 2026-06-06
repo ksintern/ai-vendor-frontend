@@ -136,6 +136,8 @@ useEffect(
             setError(null);
             return;
         }
+        // ← ADD THIS GUARD
+        if (selectedSessionId === sessionId) return;
 
         // Load existing session history
         const loadHistory=async()=>{
@@ -304,7 +306,9 @@ result?.success
         );
 
         if (!sessionId && onSessionCreated) {
-            onSessionCreated();
+            setTimeout(() => {
+                onSessionCreated(result.session_id);  // ← pass session_id up
+            }, 500);  // ← delay prevents immediate re-render race
         }
     }
 
